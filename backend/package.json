@@ -1,0 +1,34 @@
+{
+  "name": "tbo-smart-travel-copilot-backend",
+  "version": "1.0.0",
+  "description": "AI-powered Virtual Travel Agent - Backend API",
+  "main": "src/index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "nodemon src/index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "travel",
+    "ai",
+    "copilot",
+    "booking",
+    "mern"
+  ],
+  "author": "AniketAgra",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2",
+    "mongoose": "^8.0.3",
+    "bcryptjs": "^2.4.3",
+    "jsonwebtoken": "^9.0.2",
+    "dotenv": "^16.3.1",
+    "cors": "^2.8.5",
+    "zod": "^3.22.4",
+    "express-async-handler": "^1.2.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2"
+  }
+}
