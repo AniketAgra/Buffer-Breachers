@@ -15,11 +15,16 @@ const Login = () => {
     name: '',
     email: '',
     password: '',
+    role: 'CLIENT', // Default to CLIENT
     preferences: {
       budget: 'mid-range',
       travelStyle: 'solo',
       accommodation: 'hotel',
       transportation: 'economy',
+    },
+    agentDetails: {
+      license: '',
+      specialization: [],
     },
   });
 
@@ -37,6 +42,26 @@ const Login = () => {
     } else {
       setFormData((prev) => ({ ...prev, [name]: value }));
     }
+    
+    // Reset role-specific fields when switching roles
+    if (name === 'role') {
+      if (value === 'CLIENT') {
+        setFormData((prev) => ({
+          ...prev,
+          agentDetails: { license: '', specialization: [] },
+        }));
+      } else if (value === 'AGENT') {
+        setFormData((prev) => ({
+          ...prev,
+          preferences: {
+            budget: 'mid-range',
+            travelStyle: 'solo',
+            accommodation: 'hotel',
+            transportation: 'economy',
+          },
+        }));
+      }
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -51,13 +76,27 @@ const Login = () => {
           email: formData.email,
           password: formData.password,
         });
-        authLogin(response.data.data.user, response.data.data.token);
-        navigate('/dashboard');
+        const userData = response.data.data.user;
+        authLogin(userData, response.data.data.token);
+        
+        // Redirect based on role
+        if (userData.role === 'AGENT') {
+          navigate('/agent/dashboard');
+        } else {
+          navigate('/dashboard');
+        }
       } else {
         // Register
         const response = await authAPI.register(formData);
-        authLogin(response.data.data.user, response.data.data.token);
-        navigate('/dashboard');
+        const userData = response.data.data.user;
+        authLogin(userData, response.data.data.token);
+        
+        // Redirect based on role (new users default to CLIENT)
+        if (userData.role === 'AGENT') {
+          navigate('/agent/dashboard');
+        } else {
+          navigate('/dashboard');
+        }
       }
     } catch (err) {
       // Handle validation errors with detailed field messages
@@ -111,16 +150,66 @@ const Login = () => {
 
           <form onSubmit={handleSubmit} className="space-y-4">
             {!isLogin && (
-              <Input
-                label="Full Name"
-                type="text"
-                name="name"
-                value={formData.name}
-                onChange={handleChange}
-                placeholder="John Doe"
-                icon={User}
-                required
-              />
+              <>
+                <Input
+                  label="Full Name"
+                  type="text"
+                  name="name"
+                  value={formData.name}
+                  onChange={handleChange}
+                  placeholder="John Doe"
+                  icon={User}
+                  required
+                />
+                
+                {/* Role Selection */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    I am a... *
+                  </label>
+                  <div className="grid grid-cols-2 gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setFormData((prev) => ({ ...prev, role: 'CLIENT' }))}
+                      className={`p-4 border-2 rounded-lg transition-all ${
+                        formData.role === 'CLIENT'
+                          ? 'border-primary-600 bg-primary-50'
+                          : 'border-gray-200 hover:border-gray-300'
+                      }`}
+                    >
+                      <User className={`h-6 w-6 mx-auto mb-2 ${
+                        formData.role === 'CLIENT' ? 'text-primary-600' : 'text-gray-400'
+                      }`} />
+                      <div className={`font-semibold ${
+                        formData.role === 'CLIENT' ? 'text-primary-600' : 'text-gray-700'
+                      }`}>
+                        Client
+                      </div>
+                      <div className="text-xs text-gray-500 mt-1">Looking to travel</div>
+                    </button>
+                    
+                    <button
+                      type="button"
+                      onClick={() => setFormData((prev) => ({ ...prev, role: 'AGENT' }))}
+                      className={`p-4 border-2 rounded-lg transition-all ${
+                        formData.role === 'AGENT'
+                          ? 'border-primary-600 bg-primary-50'
+                          : 'border-gray-200 hover:border-gray-300'
+                      }`}
+                    >
+                      <Plane className={`h-6 w-6 mx-auto mb-2 ${
+                        formData.role === 'AGENT' ? 'text-primary-600' : 'text-gray-400'
+                      }`} />
+                      <div className={`font-semibold ${
+                        formData.role === 'AGENT' ? 'text-primary-600' : 'text-gray-700'
+                      }`}>
+                        Travel Agent
+                      </div>
+                      <div className="text-xs text-gray-500 mt-1">Managing clients</div>
+                    </button>
+                  </div>
+                </div>
+              </>
             )}
 
             <Input
@@ -147,39 +236,79 @@ const Login = () => {
 
             {!isLogin && (
               <div className="space-y-3">
-                <label className="block text-sm font-medium text-gray-700">
-                  Travel Preferences
-                </label>
+                {formData.role === 'CLIENT' ? (
+                  <>
+                    <label className="block text-sm font-medium text-gray-700">
+                      Travel Preferences
+                    </label>
 
-                <div>
-                  <label className="block text-xs text-gray-600 mb-1">Budget</label>
-                  <select
-                    name="preferences.budget"
-                    value={formData.preferences.budget}
-                    onChange={handleChange}
-                    className="input-field"
-                  >
-                    <option value="budget">Budget-Friendly</option>
-                    <option value="mid-range">Mid-Range</option>
-                    <option value="luxury">Luxury</option>
-                  </select>
-                </div>
+                    <div>
+                      <label className="block text-xs text-gray-600 mb-1">Budget</label>
+                      <select
+                        name="preferences.budget"
+                        value={formData.preferences.budget}
+                        onChange={handleChange}
+                        className="input-field"
+                      >
+                        <option value="budget">Budget-Friendly</option>
+                        <option value="mid-range">Mid-Range</option>
+                        <option value="luxury">Luxury</option>
+                      </select>
+                    </div>
 
-                <div>
-                  <label className="block text-xs text-gray-600 mb-1">Travel Style</label>
-                  <select
-                    name="preferences.travelStyle"
-                    value={formData.preferences.travelStyle}
-                    onChange={handleChange}
-                    className="input-field"
-                  >
-                    <option value="solo">Solo</option>
-                    <option value="couple">Couple</option>
-                    <option value="family">Family</option>
-                    <option value="friends">Friends</option>
-                    <option value="business">Business</option>
-                  </select>
-                </div>
+                    <div>
+                      <label className="block text-xs text-gray-600 mb-1">Travel Style</label>
+                      <select
+                        name="preferences.travelStyle"
+                        value={formData.preferences.travelStyle}
+                        onChange={handleChange}
+                        className="input-field"
+                      >
+                        <option value="solo">Solo</option>
+                        <option value="couple">Couple</option>
+                        <option value="family">Family</option>
+                        <option value="friends">Friends</option>
+                        <option value="business">Business</option>
+                      </select>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <label className="block text-sm font-medium text-gray-700">
+                      Agent Details (Optional)
+                    </label>
+
+                    <div>
+                      <label className="block text-xs text-gray-600 mb-1">License Number</label>
+                      <input
+                        type="text"
+                        name="agentDetails.license"
+                        value={formData.agentDetails.license}
+                        onChange={handleChange}
+                        placeholder="e.g., TA-12345"
+                        className="input-field"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs text-gray-600 mb-1">Specialization</label>
+                      <input
+                        type="text"
+                        name="agentDetails.specialization"
+                        placeholder="e.g., Luxury Travel, Adventure Tours"
+                        onChange={(e) => {
+                          const specs = e.target.value.split(',').map(s => s.trim()).filter(Boolean);
+                          setFormData((prev) => ({
+                            ...prev,
+                            agentDetails: { ...prev.agentDetails, specialization: specs },
+                          }));
+                        }}
+                        className="input-field"
+                      />
+                      <p className="text-xs text-gray-500 mt-1">Separate multiple with commas</p>
+                    </div>
+                  </>
+                )}
               </div>
             )}
 

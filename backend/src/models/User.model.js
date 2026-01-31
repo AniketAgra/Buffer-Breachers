@@ -26,6 +26,20 @@ const userSchema = new mongoose.Schema(
       type: String,
       trim: true,
     },
+    role: {
+      type: String,
+      enum: ['CLIENT', 'AGENT'],
+      default: 'CLIENT',
+    },
+    // Agent-specific fields
+    agentDetails: {
+      license: String,
+      specialization: [String], // e.g., ['luxury', 'adventure', 'family']
+      clients: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+      }],
+    },
     preferences: {
       budget: {
         type: String,

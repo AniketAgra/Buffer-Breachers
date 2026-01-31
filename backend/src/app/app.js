@@ -10,6 +10,7 @@ import travelRoutes from '../routes/travel.routes.js';
 import safetyRoutes from '../routes/safety.routes.js';
 import bookingRoutes from '../routes/booking.routes.js';
 import reviewRoutes from '../routes/review.routes.js';
+import agentRoutes from '../routes/agent.routes.js';
 
 const app = express();
 
@@ -66,6 +67,7 @@ app.use('/api/travel', travelRoutes);
 app.use('/api/safety', safetyRoutes);
 app.use('/api/booking', bookingRoutes);
 app.use('/api/review', reviewRoutes);
+app.use('/api/agent', agentRoutes);
 
 // ============================================
 // ERROR HANDLING

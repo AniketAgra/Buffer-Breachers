@@ -51,3 +51,17 @@ export const reviewAPI = {
   getUserReviews: () => api.get('/review/user/me'),
   markHelpful: (id, helpful) => api.post(`/review/${id}/helpful`, { helpful }),
 };
+
+// Agent endpoints
+export const agentAPI = {
+  getDashboard: () => api.get('/agent/dashboard'),
+  getClients: () => api.get('/agent/clients'),
+  assignClient: (clientEmail) => api.post('/agent/clients', { clientEmail }),
+  compareDeals: (criteria) => api.post('/agent/deals/compare', criteria),
+  validateDeal: (selectedDeal, criteria) => api.post('/agent/deals/validate', { selectedDeal, criteria }),
+  createTrip: (planData) => api.post('/agent/trips', planData),
+  getTrips: (params) => api.get('/agent/trips', { params }),
+  getTripById: (tripId) => api.get(`/agent/trips/${tripId}`),
+  updateTrip: (tripId, updates) => api.put(`/agent/trips/${tripId}`, updates),
+  deleteTrip: (tripId) => api.delete(`/agent/trips/${tripId}`),
+};

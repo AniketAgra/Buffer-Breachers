@@ -5,7 +5,7 @@ import { Menu, X, User, LogOut, LayoutDashboard, Plane } from 'lucide-react';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const { isAuthenticated, user, logout } = useAuth();
+  const { isAuthenticated, user, logout, isAgent, isClient } = useAuth();
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -47,18 +47,45 @@ const Navbar = () => {
             </Link>
             {isAuthenticated ? (
               <>
-                <Link
-                  to="/dashboard"
-                  className="text-gray-700 hover:text-primary-600 transition-colors font-medium"
-                >
-                  Dashboard
-                </Link>
-                <Link
-                  to="/demo"
-                  className="text-gray-700 hover:text-primary-600 transition-colors font-medium"
-                >
-                  AI Copilot
-                </Link>
+                {isAgent() ? (
+                  // Agent Navigation
+                  <>
+                    <Link
+                      to="/agent/dashboard"
+                      className="text-gray-700 hover:text-primary-600 transition-colors font-medium"
+                    >
+                      Dashboard
+                    </Link>
+                    <Link
+                      to="/agent/deals"
+                      className="text-gray-700 hover:text-primary-600 transition-colors font-medium"
+                    >
+                      Deals
+                    </Link>
+                    <Link
+                      to="/agent/clients"
+                      className="text-gray-700 hover:text-primary-600 transition-colors font-medium"
+                    >
+                      Clients
+                    </Link>
+                  </>
+                ) : (
+                  // Client Navigation
+                  <>
+                    <Link
+                      to="/dashboard"
+                      className="text-gray-700 hover:text-primary-600 transition-colors font-medium"
+                    >
+                      Dashboard
+                    </Link>
+                    <Link
+                      to="/demo"
+                      className="text-gray-700 hover:text-primary-600 transition-colors font-medium"
+                    >
+                      AI Copilot
+                    </Link>
+                  </>
+                )}
                 <div className="relative group">
                   <button className="flex items-center space-x-2 text-gray-700 hover:text-primary-600 transition-colors font-medium">
                     <User className="h-5 w-5" />
@@ -66,7 +93,7 @@ const Navbar = () => {
                   </button>
                   <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-2 hidden group-hover:block">
                     <Link
-                      to="/dashboard"
+                      to={isAgent() ? "/agent/dashboard" : "/dashboard"}
                       className="flex items-center px-4 py-2 text-gray-700 hover:bg-primary-50 transition-colors"
                     >
                       <LayoutDashboard className="h-4 w-4 mr-2" />
@@ -124,20 +151,50 @@ const Navbar = () => {
             </Link>
             {isAuthenticated ? (
               <>
-                <Link
-                  to="/dashboard"
-                  className="block text-gray-700 hover:text-primary-600 transition-colors font-medium"
-                  onClick={() => setIsOpen(false)}
-                >
-                  Dashboard
-                </Link>
-                <Link
-                  to="/demo"
-                  className="block text-gray-700 hover:text-primary-600 transition-colors font-medium"
-                  onClick={() => setIsOpen(false)}
-                >
-                  AI Copilot
-                </Link>
+                {isAgent() ? (
+                  // Agent Mobile Navigation
+                  <>
+                    <Link
+                      to="/agent/dashboard"
+                      className="block text-gray-700 hover:text-primary-600 transition-colors font-medium"
+                      onClick={() => setIsOpen(false)}
+                    >
+                      Dashboard
+                    </Link>
+                    <Link
+                      to="/agent/deals"
+                      className="block text-gray-700 hover:text-primary-600 transition-colors font-medium"
+                      onClick={() => setIsOpen(false)}
+                    >
+                      Deals
+                    </Link>
+                    <Link
+                      to="/agent/clients"
+                      className="block text-gray-700 hover:text-primary-600 transition-colors font-medium"
+                      onClick={() => setIsOpen(false)}
+                    >
+                      Clients
+                    </Link>
+                  </>
+                ) : (
+                  // Client Mobile Navigation
+                  <>
+                    <Link
+                      to="/dashboard"
+                      className="block text-gray-700 hover:text-primary-600 transition-colors font-medium"
+                      onClick={() => setIsOpen(false)}
+                    >
+                      Dashboard
+                    </Link>
+                    <Link
+                      to="/demo"
+                      className="block text-gray-700 hover:text-primary-600 transition-colors font-medium"
+                      onClick={() => setIsOpen(false)}
+                    >
+                      AI Copilot
+                    </Link>
+                  </>
+                )}
                 <button
                   onClick={() => {
                     handleLogout();

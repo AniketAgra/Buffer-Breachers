@@ -12,6 +12,7 @@ import { generateSafetyReport } from '../utils/safetyScore.util.js';
 import { buildItinerary } from '../utils/itineraryBuilder.util.js';
 import { formatCopilotResponse, formatClarificationRequest } from '../utils/responseFormatter.util.js';
 import { Trip } from '../models/Trip.model.js';
+import { compareDeals, validateDealSelection } from '../services/deal.service.js';
 
 /**
  * @desc    Process copilot query (Main AI endpoint)
@@ -96,11 +97,42 @@ const handleTripPlanning = async (context, user) => {
   // Calculate cost estimate
   const costEstimate = calculateEstimatedCost(recommendations, context);
   
+  // AGENT-SPECIFIC: If user is an agent, add deal comparison insights
+  let dealComparison = null;
+  let agentInsights = null;
+  
+  if (user?.role === 'AGENT') {
+    try {
+      dealComparison = await compareDeals({
+        destination: context.destination,
+        startDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+        endDate: new Date(Date.now() + (30 + context.duration) * 24 * 60 * 60 * 1000),
+        budget: context.budget.amount || 50000,
+        travelers: context.travel.count,
+        preferences: user.preferences || {},
+      });
+      
+      // Generate agent-specific insights
+      agentInsights = {
+        dealsAnalyzed: dealComparison.totalDealsAnalyzed,
+        bestDealSavings: dealComparison.bestDeal.totalPrice < (context.budget.amount || 50000) 
+          ? (context.budget.amount || 50000) - dealComparison.bestDeal.totalPrice 
+          : 0,
+        warnings: dealComparison.insights.filter(i => i.severity === 'warning'),
+        opportunities: dealComparison.insights.filter(i => i.severity === 'good'),
+        copilotRecommendation: generateAgentRecommendation(dealComparison),
+      };
+    } catch (error) {
+      console.error('Error in agent deal comparison:', error);
+    }
+  }
+  
   // Save trip to database (as planning)
   if (user) {
     try {
       const trip = await Trip.create({
         userId: user._id,
+        agentId: user.role === 'AGENT' ? user._id : null,
         destination: context.destination,
         startDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // Default 30 days from now
         endDate: new Date(Date.now() + (30 + context.duration) * 24 * 60 * 60 * 1000),
@@ -112,6 +144,9 @@ const handleTripPlanning = async (context, user) => {
         itinerary: itinerary?.days || [],
         totalCost: costEstimate.total,
         costBreakdown: costEstimate.breakdown,
+        selectedDeal: dealComparison?.bestDeal || null,
+        alternatives: dealComparison?.alternatives?.slice(0, 3) || [],
+        insights: dealComparison?.insights || [],
       });
       
       context.tripId = trip._id;
@@ -121,7 +156,52 @@ const handleTripPlanning = async (context, user) => {
   }
   
   // Format response
-  return formatCopilotResponse(context, recommendations, itinerary, safety);
+  const baseResponse = formatCopilotResponse(context, recommendations, itinerary, safety);
+  
+  // Add agent-specific data to response
+  if (agentInsights) {
+    baseResponse.agentInsights = agentInsights;
+    baseResponse.dealComparison = dealComparison;
+  }
+  
+  return baseResponse;
+};
+
+/**
+ * Generate agent-specific recommendation message
+ */
+const generateAgentRecommendation = (dealComparison) => {
+  const bestDeal = dealComparison.bestDeal;
+  const alternatives = dealComparison.alternatives;
+  
+  let message = `🎯 **Agent Recommendation**: `;
+  
+  // Check if best deal is optimal
+  const hasBetterSafetyAlternative = alternatives.some(
+    alt => alt.safetyScore > bestDeal.safetyScore && alt.totalPrice < bestDeal.totalPrice * 1.1
+  );
+  
+  const hasCheaperAlternative = alternatives.some(
+    alt => alt.totalPrice < bestDeal.totalPrice * 0.9 && alt.rating >= bestDeal.rating - 0.5
+  );
+  
+  if (!hasBetterSafetyAlternative && !hasCheaperAlternative) {
+    message += `The selected best deal offers excellent value. `;
+    message += `Safety score: ${bestDeal.safetyScore}/10, Rating: ${bestDeal.rating}/5. `;
+    message += `✅ No better alternatives found - proceed with confidence.`;
+  } else if (hasCheaperAlternative) {
+    const cheaperAlt = alternatives.find(
+      alt => alt.totalPrice < bestDeal.totalPrice * 0.9 && alt.rating >= bestDeal.rating - 0.5
+    );
+    message += `⚠️ Found a cheaper alternative (${cheaperAlt.packageName}) `;
+    message += `at ₹${cheaperAlt.totalPrice.toLocaleString()} with similar ratings. `;
+    message += `Consider reviewing with client for potential savings.`;
+  } else if (hasBetterSafetyAlternative) {
+    message += `⚠️ A safer alternative exists with comparable pricing. `;
+    message += `Review safety requirements with client before finalizing.`;
+  }
+  
+  return message;
 };
 
 /**

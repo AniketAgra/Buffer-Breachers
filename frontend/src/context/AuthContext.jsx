@@ -38,6 +38,15 @@ export const AuthProvider = ({ children }) => {
     localStorage.setItem('user', JSON.stringify(userData));
   };
 
+  const isAgent = () => {
+    return user?.role === 'AGENT';
+  };
+
+  const isClient = () => {
+    // CLIENT role or undefined/null (backward compatibility - old users default to CLIENT)
+    return !user?.role || user?.role === 'CLIENT';
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -45,6 +54,8 @@ export const AuthProvider = ({ children }) => {
         token,
         loading,
         isAuthenticated: !!token,
+        isAgent,
+        isClient,
         login,
         logout,
         updateUser,

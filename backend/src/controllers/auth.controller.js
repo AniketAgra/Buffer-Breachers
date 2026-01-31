@@ -18,7 +18,7 @@ const generateToken = (userId) => {
  * @access  Public
  */
 export const register = asyncHandler(async (req, res) => {
-  const { name, email, password, phone, preferences } = req.body;
+  const { name, email, password, phone, preferences, role, agentDetails } = req.body;
   
   // Check if user already exists
   const existingUser = await User.findOne({ email });
@@ -30,28 +30,50 @@ export const register = asyncHandler(async (req, res) => {
     });
   }
   
-  // Create new user
-  const user = await User.create({
+  // Validate role if provided
+  const userRole = role && ['CLIENT', 'AGENT'].includes(role) ? role : 'CLIENT';
+  
+  // Prepare user data
+  const userData = {
     name,
     email,
     password,
     phone,
-    preferences,
-  });
+    role: userRole,
+  };
+  
+  // Add preferences for clients
+  if (userRole === 'CLIENT') {
+    userData.preferences = preferences;
+  }
+  
+  // Add agent details for agents
+  if (userRole === 'AGENT' && agentDetails) {
+    userData.agentDetails = {
+      license: agentDetails.license,
+      specialization: agentDetails.specialization || [],
+      clients: [],
+    };
+  }
+  
+  // Create new user
+  const user = await User.create(userData);
   
   // Generate token
   const token = generateToken(user._id);
   
   res.status(201).json({
     success: true,
-    message: 'User registered successfully',
+    message: `${userRole === 'AGENT' ? 'Agent' : 'User'} registered successfully`,
     data: {
       user: {
         id: user._id,
         name: user.name,
         email: user.email,
         phone: user.phone,
+        role: user.role,
         preferences: user.preferences,
+        agentDetails: user.agentDetails,
       },
       token,
     },
@@ -98,7 +120,9 @@ export const login = asyncHandler(async (req, res) => {
         name: user.name,
         email: user.email,
         phone: user.phone,
+        role: user.role,
         preferences: user.preferences,
+        agentDetails: user.agentDetails,
       },
       token,
     },
@@ -128,7 +152,9 @@ export const getProfile = asyncHandler(async (req, res) => {
         name: user.name,
         email: user.email,
         phone: user.phone,
+        role: user.role,
         preferences: user.preferences,
+        agentDetails: user.agentDetails,
         createdAt: user.createdAt,
       },
     },
@@ -171,7 +197,9 @@ export const updateProfile = asyncHandler(async (req, res) => {
       user: {
         id: user._id,
         name: user.name,
-        email: user.email,
+        role: user.role,
+        preferences: user.preferences,
+        agentDetails: user.agentDetail
         phone: user.phone,
         preferences: user.preferences,
       },

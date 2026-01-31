@@ -7,6 +7,11 @@ const tripSchema = new mongoose.Schema(
       ref: 'User',
       required: true,
     },
+    agentId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      default: null,
+    },
     destination: {
       type: String,
       required: [true, 'Destination is required'],
@@ -45,10 +50,44 @@ const tripSchema = new mongoose.Schema(
       type: Number,
       default: 1,
     },
+    travelers: {
+      type: Number,
+      default: 1,
+    },
+    preferences: {
+      type: mongoose.Schema.Types.Mixed,
+      default: {},
+    },
     status: {
       type: String,
-      enum: ['planning', 'booked', 'ongoing', 'completed', 'cancelled'],
+      enum: ['planning', 'planned', 'booked', 'ongoing', 'in-progress', 'completed', 'cancelled'],
       default: 'planning',
+    },
+    selectedDeal: {
+      type: mongoose.Schema.Types.Mixed,
+      default: null,
+    },
+    alternatives: {
+      type: [mongoose.Schema.Types.Mixed],
+      default: [],
+    },
+    insights: {
+      type: [mongoose.Schema.Types.Mixed],
+      default: [],
+    },
+    pricing: {
+      total: Number,
+      perPerson: Number,
+      breakdown: {
+        accommodation: Number,
+        activities: Number,
+        meals: Number,
+        transport: Number,
+      },
+    },
+    dealValidation: {
+      type: mongoose.Schema.Types.Mixed,
+      default: null,
     },
     itinerary: [
       {
