@@ -20,6 +20,8 @@ const generateToken = (userId) => {
 export const register = asyncHandler(async (req, res) => {
   const { name, email, password, phone, preferences, role, agentDetails } = req.body;
   
+  console.log('Registration request:', { name, email, role, agentDetails, preferences });
+  
   // Check if user already exists
   const existingUser = await User.findOne({ email });
   
@@ -32,6 +34,8 @@ export const register = asyncHandler(async (req, res) => {
   
   // Validate role if provided
   const userRole = role && ['CLIENT', 'AGENT'].includes(role) ? role : 'CLIENT';
+  
+  console.log('Assigned role:', userRole);
   
   // Prepare user data
   const userData = {
@@ -56,8 +60,12 @@ export const register = asyncHandler(async (req, res) => {
     };
   }
   
+  console.log('Creating user with data:', { ...userData, password: '[REDACTED]' });
+  
   // Create new user
   const user = await User.create(userData);
+  
+  console.log('User created:', { id: user._id, role: user.role });
   
   // Generate token
   const token = generateToken(user._id);
@@ -197,11 +205,11 @@ export const updateProfile = asyncHandler(async (req, res) => {
       user: {
         id: user._id,
         name: user.name,
+        email: user.email,
+        phone: user.phone,
         role: user.role,
         preferences: user.preferences,
-        agentDetails: user.agentDetail
-        phone: user.phone,
-        preferences: user.preferences,
+        agentDetails: user.agentDetails,
       },
     },
   });

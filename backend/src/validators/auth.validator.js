@@ -6,6 +6,7 @@ export const registerSchema = z.object({
   email: z.string().email('Invalid email address'),
   password: z.string().min(6, 'Password must be at least 6 characters').max(100, 'Password too long'),
   phone: z.string().optional(),
+  role: z.enum(['CLIENT', 'AGENT']).optional(),
   preferences: z
     .object({
       budget: z.enum(['budget', 'mid-range', 'luxury']).optional(),
@@ -13,6 +14,12 @@ export const registerSchema = z.object({
       accommodation: z.enum(['hostel', 'hotel', 'resort', 'apartment', 'any']).optional(),
       transportation: z.enum(['economy', 'premium-economy', 'business', 'first-class']).optional(),
       mealPreference: z.enum(['veg', 'non-veg', 'vegan', 'no-preference']).optional(),
+    })
+    .optional(),
+  agentDetails: z
+    .object({
+      license: z.string().optional(),
+      specialization: z.array(z.string()).optional(),
     })
     .optional(),
 });
