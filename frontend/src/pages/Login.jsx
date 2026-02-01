@@ -86,12 +86,36 @@ const Login = () => {
           navigate('/dashboard');
         }
       } else {
-        // Register
-        const response = await authAPI.register(formData);
+        // Register - prepare data based on role
+        const registrationData = {
+          name: formData.name,
+          email: formData.email,
+          password: formData.password,
+          role: formData.role,
+        };
+
+        // Add optional phone
+        if (formData.phone) {
+          registrationData.phone = formData.phone;
+        }
+
+        // Add role-specific data
+        if (formData.role === 'CLIENT') {
+          registrationData.preferences = formData.preferences;
+        } else if (formData.role === 'AGENT') {
+          registrationData.agentDetails = formData.agentDetails;
+        }
+
+        console.log('Sending registration data:', { ...registrationData, password: '[REDACTED]' });
+
+        const response = await authAPI.register(registrationData);
         const userData = response.data.data.user;
+        
+        console.log('Registration response - user data:', userData);
+        
         authLogin(userData, response.data.data.token);
         
-        // Redirect based on role (new users default to CLIENT)
+        // Redirect based on role
         if (userData.role === 'AGENT') {
           navigate('/agent/dashboard');
         } else {
