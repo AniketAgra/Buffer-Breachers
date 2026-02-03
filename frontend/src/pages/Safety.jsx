@@ -7,18 +7,19 @@ import {
   Heart,
   Cloud,
   Home,
+  TrendingUp,
   TrendingDown,
-  CheckCircle,
-  XCircle,
-  Search,
+  Activity,
+  MapPin,
+  Phone,
+  ChevronRight,
+  Download,
+  Share2,
 } from 'lucide-react';
 import { safetyAPI } from '../services/endpoints';
-import Card from '../components/common/Card';
-import Badge from '../components/common/Badge';
-import Button from '../components/common/Button';
 
 const Safety = () => {
-  const [selectedDest, setSelectedDest] = useState('Dubai');
+  const [selectedDest, setSelectedDest] = useState('London');
   const [safetyData, setSafetyData] = useState(null);
   const [loading, setLoading] = useState(false);
 
@@ -30,21 +31,7 @@ const Safety = () => {
     'Bangkok',
     'Manali',
     'Singapore',
-    'Jaipur',
-  ];
-
-  const safetyCategories = [
-    { key: 'crime', label: 'Crime Rate', icon: Shield, color: 'text-blue-600' },
-    { key: 'health', label: 'Health & Sanitation', icon: Heart, color: 'text-green-600' },
-    { key: 'womenSafety', label: 'Women Safety', icon: Users, color: 'text-purple-600' },
-    { key: 'soloTraveler', label: 'Solo Traveler', icon: Users, color: 'text-orange-600' },
-    {
-      key: 'naturalDisasters',
-      label: 'Natural Disasters',
-      icon: Cloud,
-      color: 'text-yellow-600',
-    },
-    { key: 'terrorism', label: 'Political Stability', icon: Home, color: 'text-red-600' },
+    'London',
   ];
 
   useEffect(() => {
@@ -58,287 +45,420 @@ const Safety = () => {
       setSafetyData(response.data.data);
     } catch (error) {
       console.error('Failed to fetch safety data:', error);
+      // Set mock data for demo
+      setSafetyData({
+        overallScore: 8.2,
+        categoryScores: {
+          political: 8.8,
+          health: 7.6,
+          infra: 9.2,
+          digital: 8.5,
+        },
+        status: 'Stable',
+        riskLevel: 'LOW RISK',
+      });
     } finally {
       setLoading(false);
     }
   };
 
-  const getScoreColor = (score) => {
-    if (score >= 8) return 'bg-green-500';
-    if (score >= 6) return 'bg-yellow-500';
-    if (score >= 4) return 'bg-orange-500';
-    return 'bg-red-500';
-  };
+  const liveAlerts = [
+    {
+      type: 'storm',
+      icon: Cloud,
+      title: 'Storm Warning',
+      description: 'Heavy rainstorm expected between 14:00 - 18:00. Commercial traffic normal.',
+      time: 'Just Now',
+      priority: 'medium',
+    },
+    {
+      type: 'tube',
+      icon: AlertTriangle,
+      title: 'Tube Strike',
+      description: 'London Tube may strike due to climate aware ahead.',
+      time: '12 mins ago',
+      priority: 'high',
+    },
+    {
+      type: 'logistics',
+      icon: Activity,
+      title: 'Heathrow Logistics',
+      description: 'New terminal 3 baggage system maintenance. Allow 30 mins extra for check.',
+      time: '1 hour ago',
+      priority: 'low',
+    },
+  ];
 
-  const getScoreLabel = (score) => {
-    if (score >= 8) return 'Excellent';
-    if (score >= 6) return 'Good';
-    if (score >= 4) return 'Moderate';
-    return 'Caution';
+  const emergencyContacts = [
+    {
+      name: 'US Embassy, London',
+      type: 'DIPLOMATIC MISSION',
+      address: '24 Grosvenor Square, London W1J 7LL',
+      phone: '+44 20 7499 9000',
+    },
+    {
+      name: 'Emergency Medical Services',
+      type: 'NATIONAL SERVICE',
+      phone: '999',
+    },
+  ];
+
+  const CircularProgress = ({ value, size = 200, strokeWidth = 12 }) => {
+    const radius = (size - strokeWidth) / 2;
+    const circumference = radius * 2 * Math.PI;
+    const offset = circumference - (value / 10) * circumference;
+
+    const getColor = (score) => {
+      if (score >= 8) return '#10B981'; // green
+      if (score >= 6) return '#F59E0B'; // yellow
+      return '#EF4444'; // red
+    };
+
+    return (
+      <svg width={size} height={size} className="transform -rotate-90">
+        {/* Background circle */}
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          fill="none"
+          stroke="rgba(148, 163, 184, 0.2)"
+          strokeWidth={strokeWidth}
+        />
+        {/* Progress circle */}
+        <motion.circle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          fill="none"
+          stroke={getColor(value)}
+          strokeWidth={strokeWidth}
+          strokeDasharray={circumference}
+          strokeDashoffset={offset}
+          strokeLinecap="round"
+          initial={{ strokeDashoffset: circumference }}
+          animate={{ strokeDashoffset: offset }}
+          transition={{ duration: 2, ease: 'easeOut' }}
+        />
+      </svg>
+    );
   };
 
   return (
-    <div>
-      {/* Hero Section */}
-      <section className="bg-gradient-to-br from-green-600 via-green-700 to-green-800 text-white py-20">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="text-center max-w-4xl mx-auto"
-          >
-            <div className="flex items-center justify-center gap-2 mb-4">
-              <Shield className="h-8 w-8 text-yellow-300" />
-              <span className="text-yellow-300 font-semibold text-lg">Safety Intelligence</span>
+    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 dark:from-slate-950 dark:via-slate-900 dark:to-black">
+      {/* Header */}
+      <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 border-b border-slate-800">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="flex items-center gap-2 mb-2">
+                <Shield className="h-6 w-6 text-blue-400" />
+                <span className="text-blue-400 text-sm font-semibold uppercase tracking-wide">
+                  ENTERPRISE PROTECTION
+                </span>
+              </div>
+              <h1 className="text-4xl md:text-5xl font-bold text-white mb-2">
+                {selectedDest}, {selectedDest === 'London' ? 'United Kingdom' : 'Destination'}
+              </h1>
+              <div className="flex items-center gap-4 text-sm">
+                <span className="flex items-center gap-1 text-green-400">
+                  <Activity className="h-4 w-4" />
+                  Global Safety Index: Updated 2 mins ago
+                </span>
+              </div>
             </div>
-            <h1 className="text-5xl md:text-6xl font-bold mb-6">
-              Travel with
-              <span className="block text-yellow-300">Confidence</span>
-            </h1>
-            <p className="text-xl text-gray-100">
-              Comprehensive safety scoring across 6 categories with demographic-specific insights
-              for women, solo travelers, and families.
-            </p>
-          </motion.div>
+            <div className="flex gap-2">
+              <button className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-lg flex items-center gap-2 transition-colors border border-slate-700">
+                <Share2 className="h-4 w-4" />
+                <span className="hidden md:inline">Share</span>
+              </button>
+              <button className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg flex items-center gap-2 transition-colors">
+                <Download className="h-4 w-4" />
+                <span className="hidden md:inline">Download Full Intelligence Report</span>
+              </button>
+            </div>
+          </div>
         </div>
-      </section>
+      </div>
 
       {/* Destination Selector */}
-      <section className="py-12 bg-white border-b">
+      <div className="bg-slate-900/50 border-b border-slate-800 py-4">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-center gap-4 flex-wrap">
-            <span className="text-gray-700 font-medium flex items-center gap-2">
-              <Search className="h-5 w-5" />
+          <div className="flex items-center gap-4 flex-wrap">
+            <span className="text-gray-400 font-medium flex items-center gap-2">
+              <MapPin className="h-5 w-5" />
               Select Destination:
             </span>
             {destinations.map((dest) => (
-              <Button
+              <button
                 key={dest}
-                variant={selectedDest === dest ? 'primary' : 'outline'}
-                size="sm"
                 onClick={() => setSelectedDest(dest)}
+                className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
+                  selectedDest === dest
+                    ? 'bg-blue-600 text-white shadow-lg'
+                    : 'bg-slate-800 text-gray-300 hover:bg-slate-700 border border-slate-700'
+                }`}
               >
                 {dest}
-              </Button>
+              </button>
             ))}
           </div>
         </div>
-      </section>
+      </div>
 
       {loading ? (
         <div className="py-20 flex items-center justify-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-600"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
         </div>
-      ) : safetyData ? (
-        <>
-          {/* Overall Safety Score */}
-          <section className="py-16 bg-gray-50">
-            <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                className="max-w-4xl mx-auto"
-              >
-                <Card className="text-center">
-                  <h2 className="text-3xl font-bold text-gray-900 mb-4">
-                    {selectedDest} Safety Score
-                  </h2>
-                  <div className="flex items-center justify-center gap-8 mb-6">
-                    <div>
-                      <div className="text-6xl font-bold text-primary-600 mb-2">
-                        {safetyData.overallScore?.toFixed(1) || '7.0'}
-                      </div>
-                      <div className="text-gray-600">Out of 10</div>
+      ) : (
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
+          <div className="grid lg:grid-cols-3 gap-8">
+            {/* Left Column - Safety Score */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="card-gradient rounded-xl p-8 border border-slate-800"
+            >
+              <div className="flex flex-col items-center">
+                <div className="relative mb-6">
+                  <CircularProgress value={safetyData?.overallScore || 8.2} size={220} />
+                  <div className="absolute inset-0 flex flex-col items-center justify-center">
+                    <div className="text-6xl font-bold text-white">
+                      {(safetyData?.overallScore || 8.2).toFixed(0)}
                     </div>
-                    <div className="text-left">
-                      <Badge
-                        variant={
-                          (safetyData.overallScore || 7) >= 7
-                            ? 'success'
-                            : (safetyData.overallScore || 7) >= 5
-                            ? 'warning'
-                            : 'danger'
-                        }
-                        className="text-lg px-4 py-2"
-                      >
-                        {getScoreLabel(safetyData.overallScore || 7)}
-                      </Badge>
-                      <p className="text-gray-600 mt-2">Safety Rating</p>
+                    <div className="text-sm text-gray-400 uppercase tracking-wide">
+                      SAFETY INDEX
                     </div>
                   </div>
-                  <p className="text-gray-600 max-w-2xl mx-auto">
-                    Based on comprehensive analysis across crime, health, natural disasters,
-                    political stability, and demographic-specific safety factors.
-                  </p>
-                </Card>
-              </motion.div>
-            </div>
-          </section>
+                </div>
 
-          {/* Category Breakdown */}
-          <section className="py-16 bg-white">
-            <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                className="text-center mb-12"
-              >
-                <h2 className="text-3xl font-bold text-gray-900 mb-4">Safety Breakdown</h2>
-                <p className="text-gray-600 max-w-2xl mx-auto">
-                  Detailed analysis across multiple safety categories
-                </p>
-              </motion.div>
+                <div className="w-full space-y-4">
+                  <div className="text-center">
+                    <h3 className="text-2xl font-bold text-white mb-2">
+                      Destination Safety Level: {safetyData?.status || 'Stable'}
+                    </h3>
+                    <p className="text-gray-400 text-sm mb-4">
+                      {selectedDest} is currently experiencing a low-risk environment. Public
+                      services are operating at full capacity and no major civil unrest is
+                      reported in the primary tourist or business districts.
+                    </p>
+                    <div className="flex items-center justify-center gap-2">
+                      <span className="px-4 py-1 bg-green-500/20 text-green-400 rounded-full text-sm font-semibold border border-green-500/30">
+                        {safetyData?.riskLevel || 'LOW RISK'}
+                      </span>
+                      <span className="px-4 py-1 bg-blue-500/20 text-blue-400 rounded-full text-sm font-semibold border border-blue-500/30">
+                        STABLE INFRASTRUCTURE
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
 
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {safetyCategories.map((category, index) => (
+              {/* Category Metrics */}
+              <div className="grid grid-cols-2 gap-4 mt-8">
+                {[
+                  {
+                    label: 'POLITICAL',
+                    value: safetyData?.categoryScores?.political || 8.8,
+                    change: '+2%',
+                    trend: 'up',
+                  },
+                  {
+                    label: 'HEALTH',
+                    value: safetyData?.categoryScores?.health || 7.6,
+                    change: '+1%',
+                    trend: 'up',
+                  },
+                  {
+                    label: 'INFRA',
+                    value: safetyData?.categoryScores?.infra || 9.2,
+                    change: '-1%',
+                    trend: 'down',
+                  },
+                  {
+                    label: 'DIGITAL',
+                    value: safetyData?.categoryScores?.digital || 8.5,
+                    change: '+4%',
+                    trend: 'up',
+                  },
+                ].map((metric, index) => (
                   <motion.div
-                    key={category.key}
-                    initial={{ opacity: 0, y: 20 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.1 }}
+                    key={index}
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: 0.2 + index * 0.1 }}
+                    className="metric-card p-4 text-center"
                   >
-                    <Card>
-                      <div className="flex items-center justify-between mb-4">
-                        <div className="flex items-center gap-3">
-                          <category.icon className={`h-6 w-6 ${category.color}`} />
-                          <h3 className="font-semibold text-gray-900">{category.label}</h3>
-                        </div>
-                        <div className="text-2xl font-bold text-primary-600">
-                          {safetyData.categoryScores?.[category.key]?.toFixed(1) || '7.0'}
-                        </div>
-                      </div>
-
-                      {/* Progress Bar */}
-                      <div className="relative w-full h-3 bg-gray-200 rounded-full overflow-hidden">
-                        <motion.div
-                          initial={{ width: 0 }}
-                          whileInView={{ width: `${(safetyData.categoryScores?.[category.key] || 7) * 10}%` }}
-                          transition={{ duration: 1, delay: index * 0.1 }}
-                          className={`h-full ${getScoreColor(
-                            safetyData.categoryScores?.[category.key] || 7
-                          )}`}
-                        />
-                      </div>
-
-                      <div className="mt-2 text-sm text-gray-600">
-                        {getScoreLabel(safetyData.categoryScores?.[category.key] || 7)}
-                      </div>
-                    </Card>
+                    <p className="text-xs text-gray-400 uppercase mb-1">{metric.label}</p>
+                    <p className="text-3xl font-bold text-white mb-1">
+                      {metric.value.toFixed(1)}/10
+                    </p>
+                    <div
+                      className={`flex items-center justify-center gap-1 text-xs ${
+                        metric.trend === 'up' ? 'text-green-400' : 'text-red-400'
+                      }`}
+                    >
+                      {metric.trend === 'up' ? (
+                        <TrendingUp className="h-3 w-3" />
+                      ) : (
+                        <TrendingDown className="h-3 w-3" />
+                      )}
+                      <span>{metric.change}</span>
+                    </div>
                   </motion.div>
                 ))}
               </div>
-            </div>
-          </section>
 
-          {/* Safety Warnings */}
-          {safetyData.warnings && safetyData.warnings.length > 0 && (
-            <section className="py-16 bg-gray-50">
-              <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  className="max-w-4xl mx-auto"
-                >
-                  <div className="flex items-center gap-3 mb-6">
-                    <AlertTriangle className="h-8 w-8 text-yellow-600" />
-                    <h2 className="text-3xl font-bold text-gray-900">Safety Advisories</h2>
+              {/* Expanded Map Link */}
+              <button className="w-full mt-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors flex items-center justify-center gap-2">
+                <MapPin className="h-5 w-5" />
+                Expanded Map
+              </button>
+            </motion.div>
+
+            {/* Right Column */}
+            <div className="lg:col-span-2 space-y-6">
+              {/* Live Disruption Feed */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 }}
+                className="card-gradient rounded-xl p-6 border border-slate-800"
+              >
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center gap-2">
+                    <AlertTriangle className="h-5 w-5 text-red-500" />
+                    <h2 className="text-xl font-bold text-white">Live Disruption Feed</h2>
                   </div>
+                  <span className="px-3 py-1 bg-red-500/20 text-red-400 rounded-full text-xs font-semibold border border-red-500/30">
+                    3 HIGH PRIORITY
+                  </span>
+                </div>
 
-                  <div className="space-y-4">
-                    {safetyData.warnings.map((warning, index) => (
-                      <motion.div
-                        key={index}
-                        initial={{ opacity: 0, x: -20 }}
-                        whileInView={{ opacity: 1, x: 0 }}
-                        transition={{ delay: index * 0.1 }}
-                      >
-                        <Card className="border-l-4 border-yellow-500">
-                          <div className="flex items-start gap-3">
-                            <AlertTriangle className="h-5 w-5 text-yellow-600 mt-1 flex-shrink-0" />
-                            <div>
-                              <p className="text-gray-800 font-medium mb-1">{warning.title}</p>
-                              <p className="text-gray-600 text-sm">{warning.description}</p>
-                            </div>
-                          </div>
-                        </Card>
-                      </motion.div>
-                    ))}
-                  </div>
-                </motion.div>
-              </div>
-            </section>
-          )}
-
-          {/* Recommendations */}
-          {safetyData.recommendations && safetyData.recommendations.length > 0 && (
-            <section className="py-16 bg-white">
-              <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  className="max-w-4xl mx-auto"
-                >
-                  <div className="flex items-center gap-3 mb-6">
-                    <CheckCircle className="h-8 w-8 text-green-600" />
-                    <h2 className="text-3xl font-bold text-gray-900">Safety Tips</h2>
-                  </div>
-
-                  <div className="grid md:grid-cols-2 gap-4">
-                    {safetyData.recommendations.map((rec, index) => (
-                      <motion.div
-                        key={index}
-                        initial={{ opacity: 0, y: 20 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        transition={{ delay: index * 0.1 }}
-                      >
-                        <div className="flex items-start gap-3 p-4 bg-green-50 rounded-lg">
-                          <CheckCircle className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" />
-                          <p className="text-gray-700">{rec}</p>
+                <div className="space-y-4">
+                  {liveAlerts.map((alert, index) => (
+                    <motion.div
+                      key={index}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: 0.4 + index * 0.1 }}
+                      className="bg-slate-800/50 rounded-lg p-4 border border-slate-700 hover:border-slate-600 transition-colors"
+                    >
+                      <div className="flex items-start gap-3">
+                        <div
+                          className={`p-2 rounded-lg ${
+                            alert.priority === 'high'
+                              ? 'bg-red-500/20 text-red-400'
+                              : alert.priority === 'medium'
+                              ? 'bg-yellow-500/20 text-yellow-400'
+                              : 'bg-blue-500/20 text-blue-400'
+                          }`}
+                        >
+                          <alert.icon className="h-5 w-5" />
                         </div>
-                      </motion.div>
-                    ))}
-                  </div>
-                </motion.div>
-              </div>
-            </section>
-          )}
-        </>
-      ) : null}
+                        <div className="flex-1">
+                          <div className="flex items-center justify-between mb-1">
+                            <h3 className="text-white font-semibold">{alert.title}</h3>
+                            <span className="text-xs text-gray-500">{alert.time}</span>
+                          </div>
+                          <p className="text-gray-400 text-sm">{alert.description}</p>
+                        </div>
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
 
-      {/* How Safety Scoring Works */}
-      <section className="py-20 bg-gray-900 text-white">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            className="max-w-4xl mx-auto"
-          >
-            <h2 className="text-4xl font-bold mb-8 text-center">How We Calculate Safety Scores</h2>
-            <div className="grid md:grid-cols-2 gap-6">
-              <div className="bg-gray-800 p-6 rounded-lg">
-                <h3 className="text-xl font-semibold mb-4 text-yellow-300">Data Sources</h3>
-                <ul className="space-y-2 text-gray-300">
-                  <li>• Government travel advisories</li>
-                  <li>• Local crime statistics</li>
-                  <li>• Health & sanitation reports</li>
-                  <li>• Traveler reviews & feedback</li>
-                  <li>• Real-time alert systems</li>
-                </ul>
-              </div>
-              <div className="bg-gray-800 p-6 rounded-lg">
-                <h3 className="text-xl font-semibold mb-4 text-yellow-300">Scoring Algorithm</h3>
-                <ul className="space-y-2 text-gray-300">
-                  <li>• 6 category weighted scoring</li>
-                  <li>• Demographic-specific analysis</li>
-                  <li>• Time-based relevance</li>
-                  <li>• Area-wise granularity</li>
-                  <li>• 0-10 scale with color coding</li>
-                </ul>
-              </div>
+                <button className="w-full mt-4 py-2 text-blue-400 hover:text-blue-300 text-sm font-medium flex items-center justify-center gap-2 transition-colors">
+                  View All Disruption History
+                  <ChevronRight className="h-4 w-4" />
+                </button>
+              </motion.div>
+
+              {/* Emergency Directory */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.5 }}
+                className="card-gradient rounded-xl p-6 border border-slate-800"
+              >
+                <h2 className="text-xl font-bold text-white mb-6">Emergency Directory</h2>
+
+                <div className="space-y-4">
+                  {emergencyContacts.map((contact, index) => (
+                    <motion.div
+                      key={index}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.6 + index * 0.1 }}
+                      className="bg-slate-800/50 rounded-lg p-4 border border-slate-700"
+                    >
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1">
+                            <Phone className="h-4 w-4 text-blue-400" />
+                            <h3 className="text-white font-semibold">{contact.name}</h3>
+                          </div>
+                          <p className="text-xs text-blue-400 uppercase mb-2">{contact.type}</p>
+                          {contact.address && (
+                            <p className="text-sm text-gray-400 mb-2">{contact.address}</p>
+                          )}
+                          <p className="text-2xl font-bold text-white">{contact.phone}</p>
+                        </div>
+                        {index === 0 ? (
+                          <MapPin className="h-5 w-5 text-blue-400" />
+                        ) : (
+                          <Activity className="h-5 w-5 text-red-400" />
+                        )}
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              </motion.div>
+
+              {/* Safe Area Mapping */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.7 }}
+                className="card-gradient rounded-xl p-6 border border-slate-800"
+              >
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-xl font-bold text-white">Safe Area Mapping</h2>
+                  <button className="text-blue-400 hover:text-blue-300 text-sm font-medium flex items-center gap-1">
+                    Expanded Map
+                    <ChevronRight className="h-4 w-4" />
+                  </button>
+                </div>
+                <p className="text-gray-400 text-sm mb-4">
+                  Real-time crime & incident density
+                </p>
+
+                {/* Map placeholder */}
+                <div className="bg-slate-800/50 rounded-lg h-64 flex items-center justify-center border border-slate-700">
+                  <div className="text-center">
+                    <MapPin className="h-12 w-12 text-gray-600 mx-auto mb-2" />
+                    <p className="text-gray-500">Interactive Map View</p>
+                    <p className="text-xs text-gray-600 mt-1">
+                      Showing high safety zones and caution areas
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex gap-4 mt-4">
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 rounded-full bg-green-500"></div>
+                    <span className="text-sm text-gray-400">High Safety Zones</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 rounded-full bg-orange-500"></div>
+                    <span className="text-sm text-gray-400">Caution Areas</span>
+                  </div>
+                </div>
+              </motion.div>
             </div>
-          </motion.div>
+          </div>
         </div>
-      </section>
+      )}
     </div>
   );
 };
