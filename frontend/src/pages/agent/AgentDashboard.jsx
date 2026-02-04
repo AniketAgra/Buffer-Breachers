@@ -116,217 +116,241 @@ const AgentDashboard = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-600"></div>
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
+        <div className="flex flex-col items-center space-y-4">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-cyan-500"></div>
+          <p className="text-slate-400">Loading dashboard...</p>
+        </div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
-          {error}
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center p-4">
+        <div className="bg-red-500/10 border border-red-500/30 text-red-400 px-6 py-4 rounded-xl max-w-md">
+          <p className="font-medium mb-2">Error Loading Dashboard</p>
+          <p className="text-sm">{error}</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="container mx-auto px-4">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Agent Dashboard</h1>
-          <p className="text-gray-600">
-            Manage clients, compare deals, and plan trips efficiently
-          </p>
+    <div className="min-h-screen bg-slate-950 text-white">
+      {/* Sidebar Navigation */}
+      <div className="fixed left-0 top-0 h-screen w-48 bg-slate-900/50 border-r border-slate-800 backdrop-blur-xl z-40">
+        <div className="p-6">
+          <div className="flex items-center space-x-2 mb-8">
+            <Plane className="h-6 w-6 text-cyan-400" />
+            <span className="font-bold text-lg">TravelAI</span>
+          </div>
+          
+          <nav className="space-y-1">
+            {navigationItems.map((item) => (
+              <button
+                key={item.id}
+                onClick={() => setActiveNav(item.id)}
+                className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-all ${
+                  activeNav === item.id
+                    ? 'bg-cyan-500/20 text-cyan-400'
+                    : 'text-slate-400 hover:bg-slate-800/50 hover:text-white'
+                }`}
+              >
+                <item.icon className="h-5 w-5" />
+                <span className="text-sm font-medium">{item.label}</span>
+              </button>
+            ))}
+          </nav>
         </div>
 
-        {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        {/* User Profile */}
+        <div className="absolute bottom-0 left-0 right-0 p-6 border-t border-slate-800">
+          <div className="flex items-center space-x-3">
+            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-cyan-400 to-blue-500 flex items-center justify-center">
+              <span className="text-sm font-bold">SJ</span>
+            </div>
+            <div>
+              <p className="text-sm font-medium">Sarah Jenkins</p>
+              <p className="text-xs text-slate-400">Senior Agent</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="ml-48 p-8">
+        {/* Top Stats Row */}
+        <div className="grid grid-cols-3 gap-6 mb-8">
+          {/* Active Bookings Card */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
+            className="bg-slate-900/50 backdrop-blur-xl border border-slate-800 rounded-2xl p-6"
           >
-            <Card className="bg-gradient-to-br from-blue-500 to-blue-600 text-white">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-blue-100 text-sm mb-1">Total Clients</p>
-                  <h3 className="text-3xl font-bold">{stats?.totalClients || 0}</h3>
-                </div>
-                <Users className="h-12 w-12 text-blue-200" />
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <p className="text-slate-400 text-sm mb-1">Active Bookings</p>
+                <h3 className="text-4xl font-bold">1,284</h3>
               </div>
-            </Card>
+              <Calendar className="h-10 w-10 text-cyan-400" />
+            </div>
+            <div className="flex items-center space-x-2">
+              <span className="text-green-400 text-sm font-semibold flex items-center">
+                <ArrowUp className="h-4 w-4" />
+                +15.4%
+              </span>
+              <span className="text-slate-500 text-sm">from last month</span>
+            </div>
           </motion.div>
 
+          {/* Monthly Revenue Card */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
+            className="bg-slate-900/50 backdrop-blur-xl border border-slate-800 rounded-2xl p-6"
           >
-            <Card className="bg-gradient-to-br from-green-500 to-green-600 text-white">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-green-100 text-sm mb-1">Active Bookings</p>
-                  <h3 className="text-3xl font-bold">{stats?.activeBookings || 0}</h3>
-                </div>
-                <CheckCircle className="h-12 w-12 text-green-200" />
-              </div>
-            </Card>
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-slate-400 text-sm">Monthly Revenue</p>
+              <span className="text-green-400 text-sm font-semibold">+8.4%</span>
+            </div>
+            <h3 className="text-4xl font-bold mb-3">$42,500</h3>
+            {/* Mini Chart */}
+            <div className="h-16 flex items-end space-x-1">
+              {[40, 65, 55, 75, 60, 85, 70, 90, 75, 80, 85, 80].map((height, i) => (
+                <div key={i} className="flex-1 bg-gradient-to-t from-cyan-600 to-cyan-400 rounded-t opacity-70" style={{ height: `${height}%` }}></div>
+              ))}
+            </div>
           </motion.div>
 
+          {/* High-Risk Alerts Card */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
+            className="bg-slate-900/50 backdrop-blur-xl border border-red-900/30 rounded-2xl p-6"
           >
-            <Card className="bg-gradient-to-br from-purple-500 to-purple-600 text-white">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-purple-100 text-sm mb-1">Active Plans</p>
-                  <h3 className="text-3xl font-bold">{stats?.activePlans || 0}</h3>
-                </div>
-                <Calendar className="h-12 w-12 text-purple-200" />
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <p className="text-slate-400 text-sm mb-1">High-Risk Alerts</p>
+                <h3 className="text-4xl font-bold text-red-400">12</h3>
               </div>
-            </Card>
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4 }}
-          >
-            <Card className="bg-gradient-to-br from-orange-500 to-orange-600 text-white">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-orange-100 text-sm mb-1">Total Revenue</p>
-                  <h3 className="text-3xl font-bold">
-                    ₹{((stats?.totalRevenue || 0) / 1000).toFixed(0)}K
-                  </h3>
-                </div>
-                <TrendingUp className="h-12 w-12 text-orange-200" />
-              </div>
-            </Card>
+              <AlertTriangle className="h-10 w-10 text-red-400" />
+            </div>
+            <p className="text-slate-400 text-sm mb-2">Clients in affected areas</p>
+            <button className="text-cyan-400 text-sm font-medium hover:underline flex items-center">
+              Review safety protocols <ArrowRight className="h-4 w-4 ml-1" />
+            </button>
           </motion.div>
         </div>
 
-        {/* Quick Actions */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-          <Card>
-            <div className="flex items-center mb-4">
-              <Search className="h-6 w-6 text-primary-600 mr-2" />
-              <h3 className="text-lg font-semibold text-gray-900">Find Best Deals</h3>
-            </div>
-            <p className="text-gray-600 mb-4">
-              Compare deals across multiple providers and ensure no opportunities are missed
-            </p>
-            <Link to="/agent/deals">
-              <Button variant="primary" fullWidth>
-                Compare Deals
-              </Button>
-            </Link>
-          </Card>
+        <div className="grid grid-cols-3 gap-6">
+          {/* Left Column - Upcoming Client Deadlines */}
+          <div className="col-span-2 space-y-6">
+            <div className="bg-slate-900/50 backdrop-blur-xl border border-slate-800 rounded-2xl p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-xl font-bold">Upcoming Client Deadlines</h3>
+                <button className="text-cyan-400 text-sm font-medium hover:underline">
+                  View All
+                </button>
+              </div>
 
-          <Card>
-            <div className="flex items-center mb-4">
-              <Users className="h-6 w-6 text-primary-600 mr-2" />
-              <h3 className="text-lg font-semibold text-gray-900">Manage Clients</h3>
-            </div>
-            <p className="text-gray-600 mb-4">
-              View and manage your client portfolio, add new clients, track their bookings
-            </p>
-            <Link to="/agent/clients">
-              <Button variant="outline" fullWidth>
-                View Clients
-              </Button>
-            </Link>
-          </Card>
+              {/* Table Header */}
+              <div className="grid grid-cols-12 gap-4 text-xs font-semibold text-slate-500 uppercase tracking-wider mb-4 pb-3 border-b border-slate-800">
+                <div className="col-span-3">Client Name</div>
+                <div className="col-span-3">Destination</div>
+                <div className="col-span-2">Status</div>
+                <div className="col-span-4">Action</div>
+              </div>
 
-          <Card>
-            <div className="flex items-center mb-4">
-              <Calendar className="h-6 w-6 text-primary-600 mr-2" />
-              <h3 className="text-lg font-semibold text-gray-900">Plan New Trip</h3>
+              {/* Table Rows */}
+              <div className="space-y-3">
+                {upcomingDeadlines.map((deadline, index) => (
+                  <motion.div
+                    key={deadline.id}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.1 * index }}
+                    className="grid grid-cols-12 gap-4 items-center py-4 px-3 bg-slate-800/30 rounded-xl hover:bg-slate-800/50 transition-all"
+                  >
+                    <div className="col-span-3 flex items-center space-x-3">
+                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-cyan-400 to-blue-500 flex items-center justify-center text-sm font-bold">
+                        {deadline.initials}
+                      </div>
+                      <span className="font-medium">{deadline.clientName}</span>
+                    </div>
+                    <div className="col-span-3">
+                      <div className="flex items-center space-x-2 text-slate-300">
+                        <MapPin className="h-4 w-4 text-slate-500" />
+                        <div>
+                          <p className="font-medium">{deadline.destination.split(',')[0]}</p>
+                          <p className="text-xs text-slate-500">Departs: {deadline.date}</p>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="col-span-2">
+                      <span className={`px-3 py-1 rounded-full text-xs font-medium ${deadline.statusColor}`}>
+                        {deadline.status}
+                      </span>
+                    </div>
+                    <div className="col-span-4">
+                      <button className="px-4 py-2 bg-cyan-500 hover:bg-cyan-600 text-white rounded-lg text-sm font-medium transition-colors w-full">
+                        {deadline.action}
+                      </button>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
             </div>
-            <p className="text-gray-600 mb-4">
-              Create optimized trip plans for clients with AI-powered recommendations
-            </p>
-            <Link to="/agent/trips/plan">
-              <Button variant="secondary" fullWidth>
-                Plan Trip
-              </Button>
-            </Link>
-          </Card>
-        </div>
+          </div>
 
-        {/* Performance Metrics */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <Card>
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">
-              Performance Overview
-            </h3>
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <span className="text-gray-600">Total Bookings</span>
-                <span className="font-semibold text-gray-900">
-                  {stats?.totalBookings || 0}
-                </span>
+          {/* Right Column - AI Copilot */}
+          <div className="space-y-6">
+            <div className="bg-slate-900/50 backdrop-blur-xl border border-slate-800 rounded-2xl p-6">
+              <div className="flex items-center space-x-2 mb-6">
+                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-cyan-400 to-blue-500 flex items-center justify-center">
+                  <Sparkles className="h-5 w-5" />
+                </div>
+                <h3 className="text-lg font-bold">AI COPILOT</h3>
               </div>
-              <div className="flex items-center justify-between">
-                <span className="text-gray-600">Total Plans Created</span>
-                <span className="font-semibold text-gray-900">
-                  {stats?.totalPlans || 0}
-                </span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-gray-600">Avg. Booking Value</span>
-                <span className="font-semibold text-gray-900">
-                  ₹{(stats?.averageBookingValue || 0).toLocaleString()}
-                </span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-gray-600">Potential Revenue</span>
-                <span className="font-semibold text-green-600">
-                  ₹{((stats?.potentialRevenue || 0) / 1000).toFixed(0)}K
-                </span>
-              </div>
-            </div>
-          </Card>
 
-          <Card>
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Tips</h3>
-            <div className="space-y-3">
-              <div className="flex items-start">
-                <AlertTriangle className="h-5 w-5 text-yellow-500 mr-2 mt-0.5 flex-shrink-0" />
-                <p className="text-sm text-gray-600">
-                  Always compare at least 3-5 deals before finalizing a booking
-                </p>
+              <div className="space-y-4">
+                {aiSuggestions.map((suggestion, index) => (
+                  <motion.div
+                    key={index}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.2 + 0.1 * index }}
+                    className="bg-slate-800/40 rounded-xl p-4 border border-slate-700/50"
+                  >
+                    <div className="flex items-start space-x-3 mb-3">
+                      <suggestion.icon className={`h-5 w-5 ${suggestion.iconColor} mt-0.5`} />
+                      <div className="flex-1">
+                        <p className="text-sm font-medium mb-1">
+                          <span className={suggestion.iconColor}>{suggestion.title}</span>
+                        </p>
+                        <p className="text-sm text-slate-400">{suggestion.description}</p>
+                      </div>
+                    </div>
+                    <button className="w-full px-4 py-2 border border-cyan-500/50 text-cyan-400 hover:bg-cyan-500/10 rounded-lg text-xs font-semibold transition-all">
+                      {suggestion.action}
+                    </button>
+                  </motion.div>
+                ))}
               </div>
-              <div className="flex items-start">
-                <CheckCircle className="h-5 w-5 text-green-500 mr-2 mt-0.5 flex-shrink-0" />
-                <p className="text-sm text-gray-600">
-                  Consider safety scores along with price when recommending deals
-                </p>
-              </div>
-              <div className="flex items-start">
-                <Clock className="h-5 w-5 text-blue-500 mr-2 mt-0.5 flex-shrink-0" />
-                <p className="text-sm text-gray-600">
-                  Early bookings (60+ days) typically offer 15-20% better prices
-                </p>
-              </div>
-              <div className="flex items-start">
-                <DollarSign className="h-5 w-5 text-purple-500 mr-2 mt-0.5 flex-shrink-0" />
-                <p className="text-sm text-gray-600">
-                  Use the deal validator to ensure optimal value for clients
-                </p>
-              </div>
+
+              <button className="w-full mt-4 px-4 py-2 text-cyan-400 text-sm font-medium hover:underline flex items-center justify-center">
+                Ask Copilot something <ArrowRight className="h-4 w-4 ml-2" />
+              </button>
             </div>
-          </Card>
+          </div>
         </div>
       </div>
     </div>
   );
 };
+
 
 export default AgentDashboard;
