@@ -59,6 +59,12 @@ const Navbar = () => {
                       Dashboard
                     </Link>
                     <Link
+                      to="/agent/copilot"
+                      className="text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-blue-400 transition-colors font-medium"
+                    >
+                      AI Copilot
+                    </Link>
+                    <Link
                       to="/agent/deals"
                       className="text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-blue-400 transition-colors font-medium"
                     >
@@ -81,10 +87,10 @@ const Navbar = () => {
                       Dashboard
                     </Link>
                     <Link
-                      to="/demo"
+                      to="/plan-trip"
                       className="text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-blue-400 transition-colors font-medium"
                     >
-                      AI Copilot
+                      Plan Trip
                     </Link>
                   </>
                 )}
@@ -184,6 +190,13 @@ const Navbar = () => {
                       Dashboard
                     </Link>
                     <Link
+                      to="/agent/copilot"
+                      className="block text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-blue-400 transition-colors font-medium"
+                      onClick={() => setIsOpen(false)}
+                    >
+                      AI Copilot
+                    </Link>
+                    <Link
                       to="/agent/deals"
                       className="block text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-blue-400 transition-colors font-medium"
                       onClick={() => setIsOpen(false)}
@@ -209,11 +222,11 @@ const Navbar = () => {
                       Dashboard
                     </Link>
                     <Link
-                      to="/demo"
+                      to="/plan-trip"
                       className="block text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-blue-400 transition-colors font-medium"
                       onClick={() => setIsOpen(false)}
                     >
-                      AI Copilot
+                      Plan Trip
                     </Link>
                   </>
                 )}

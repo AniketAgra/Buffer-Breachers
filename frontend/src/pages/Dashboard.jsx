@@ -100,10 +100,11 @@ const Dashboard = () => {
               </div>
             </div>
             <Link
-              to="/demo"
-              className="px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-lg font-medium transition-all duration-200 shadow-lg hover:shadow-blue-500/50"
+              to="/plan-trip"
+              className="px-6 py-3 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white rounded-lg font-semibold transition-all duration-200 shadow-lg hover:shadow-cyan-500/50 flex items-center space-x-2"
             >
-              + New Trip
+              <Plane className="w-5 h-5" />
+              <span>Plan New Trip</span>
             </Link>
           </div>
         </motion.div>

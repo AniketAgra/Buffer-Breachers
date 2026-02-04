@@ -8,7 +8,7 @@ import Home from './pages/Home';
 import Features from './pages/Features';
 import Safety from './pages/Safety';
 import Dashboard from './pages/Dashboard';
-import Demo from './pages/Demo';
+import PlanTrip from './pages/PlanTrip';
 import Login from './pages/Login';
 
 // Agent pages (lazy loaded)
@@ -16,6 +16,7 @@ const AgentDashboard = React.lazy(() => import('./pages/agent/AgentDashboard'));
 const DealManager = React.lazy(() => import('./pages/agent/DealManager'));
 const ClientManager = React.lazy(() => import('./pages/agent/ClientManager'));
 const TripPlanner = React.lazy(() => import('./pages/agent/TripPlanner'));
+const AgentCopilot = React.lazy(() => import('./pages/agent/AgentCopilot'));
 
 // Protected Route Component
 const ProtectedRoute = ({ children, requireAgent = false, requireClient = false }) => {
@@ -73,10 +74,10 @@ function App() {
                 }
               />
               <Route
-                path="/demo"
+                path="/plan-trip"
                 element={
                   <ProtectedRoute requireClient>
-                    <Demo />
+                    <PlanTrip />
                   </ProtectedRoute>
                 }
               />
@@ -87,6 +88,14 @@ function App() {
                 element={
                   <ProtectedRoute requireAgent>
                     <AgentDashboard />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/agent/copilot"
+                element={
+                  <ProtectedRoute requireAgent>
+                    <AgentCopilot />
                   </ProtectedRoute>
                 }
               />

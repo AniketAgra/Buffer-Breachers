@@ -8,325 +8,346 @@ import {
   Star,
   AlertCircle,
   DollarSign,
+  Target,
+  CheckCircle,
+  Clock,
+  Users,
+  Briefcase,
+  Filter,
+  MoreVertical,
+  ArrowRight,
+  Calendar,
+  Zap,
 } from 'lucide-react';
 import { agentAPI } from '../../services/endpoints';
-import Card from '../../components/common/Card';
-import Button from '../../components/common/Button';
-import Input from '../../components/common/Input';
-import Badge from '../../components/common/Badge';
 
 const DealManager = () => {
-  const [searchCriteria, setSearchCriteria] = useState({
-    destination: '',
-    startDate: '',
-    endDate: '',
-    budget: '',
-    travelers: 1,
+  const [deals, setDeals] = useState([
+    {
+      id: 1,
+      client: 'Sarah Johnson',
+      clientCompany: 'TechCorp Inc.',
+      destination: 'Paris, France',
+      travelDates: 'Mar 15-22, 2024',
+      value: 45000,
+      status: 'negotiating',
+      priority: 'high',
+      savings: 5200,
+      lastActivity: '2 hours ago',
+      travelers: 3,
+      type: 'Business Summit',
+    },
+    {
+      id: 2,
+      client: 'Michael Chen',
+      clientCompany: 'Global Ventures',
+      destination: 'Tokyo, Japan',
+      travelDates: 'Apr 5-12, 2024',
+      value: 38000,
+      status: 'pending',
+      priority: 'medium',
+      savings: 3100,
+      lastActivity: '1 day ago',
+      travelers: 2,
+      type: 'Conference',
+    },
+    {
+      id: 3,
+      client: 'Emily Rodriguez',
+      clientCompany: 'Design Studio',
+      destination: 'Dubai, UAE',
+      travelDates: 'Mar 28-Apr 2, 2024',
+      value: 52000,
+      status: 'confirmed',
+      priority: 'high',
+      savings: 6800,
+      lastActivity: '3 days ago',
+      travelers: 4,
+      type: 'Team Building',
+    },
+    {
+      id: 4,
+      client: 'David Park',
+      clientCompany: 'InnoTech Solutions',
+      destination: 'London, UK',
+      travelDates: 'May 10-15, 2024',
+      value: 29000,
+      status: 'negotiating',
+      priority: 'low',
+      savings: 2400,
+      lastActivity: '5 hours ago',
+      travelers: 2,
+      type: 'Client Meeting',
+    },
+    {
+      id: 5,
+      client: 'Lisa Thompson',
+      clientCompany: 'MediaWorks',
+      destination: 'Singapore',
+      travelDates: 'Jun 1-7, 2024',
+      value: 41000,
+      status: 'pending',
+      priority: 'medium',
+      savings: 4500,
+      lastActivity: '2 days ago',
+      travelers: 3,
+      type: 'Product Launch',
+    },
+  ]);
+
+  const [filterStatus, setFilterStatus] = useState('all');
+  const [searchTerm, setSearchTerm] = useState('');
+
+  const filteredDeals = deals.filter((deal) => {
+    const matchesSearch =
+      deal.client.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      deal.destination.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      deal.clientCompany.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesFilter = filterStatus === 'all' || deal.status === filterStatus;
+    return matchesSearch && matchesFilter;
   });
-  const [dealResults, setDealResults] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setSearchCriteria((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleSearch = async (e) => {
-    e.preventDefault();
-    setError('');
-    setLoading(true);
-
-    try {
-      const response = await agentAPI.compareDeals({
-        ...searchCriteria,
-        budget: parseFloat(searchCriteria.budget),
-        travelers: parseInt(searchCriteria.travelers),
-      });
-      setDealResults(response.data);
-    } catch (err) {
-      setError(err.response?.data?.message || 'Failed to compare deals');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const getSeverityColor = (severity) => {
-    switch (severity) {
-      case 'good':
-        return 'success';
-      case 'warning':
-        return 'warning';
-      case 'info':
-        return 'info';
+  const getStatusConfig = (status) => {
+    switch (status) {
+      case 'confirmed':
+        return {
+          label: 'CONFIRMED',
+          bg: 'bg-green-500/10',
+          text: 'text-green-400',
+          border: 'border-green-500/30',
+          icon: CheckCircle,
+        };
+      case 'negotiating':
+        return {
+          label: 'NEGOTIATING',
+          bg: 'bg-amber-500/10',
+          text: 'text-amber-400',
+          border: 'border-amber-500/30',
+          icon: Clock,
+        };
+      case 'pending':
+        return {
+          label: 'PENDING',
+          bg: 'bg-cyan-500/10',
+          text: 'text-cyan-400',
+          border: 'border-cyan-500/30',
+          icon: AlertCircle,
+        };
       default:
-        return 'default';
+        return {
+          label: status.toUpperCase(),
+          bg: 'bg-slate-500/10',
+          text: 'text-slate-400',
+          border: 'border-slate-500/30',
+          icon: AlertCircle,
+        };
     }
   };
+
+  const getPriorityColor = (priority) => {
+    switch (priority) {
+      case 'high':
+        return 'text-red-400';
+      case 'medium':
+        return 'text-amber-400';
+      case 'low':
+        return 'text-green-400';
+      default:
+        return 'text-slate-400';
+    }
+  };
+
+  const totalValue = deals.reduce((sum, deal) => sum + deal.value, 0);
+  const totalSavings = deals.reduce((sum, deal) => sum + deal.savings, 0);
+  const activeDeals = deals.filter((d) => d.status !== 'confirmed').length;
+  const confirmedDeals = deals.filter((d) => d.status === 'confirmed').length;
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="container mx-auto px-4">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Deal Manager</h1>
-          <p className="text-gray-600">
-            Compare deals, find the best value, and ensure no opportunities are missed
-          </p>
-        </div>
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+      {/* Header */}
+      <div className="bg-slate-800/50 border-b border-slate-700/50 px-6 py-6">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h1 className="text-3xl font-bold text-white mb-2">Deal Pipeline</h1>
+              <p className="text-slate-400">Track and manage client travel deals</p>
+            </div>
+            <button className="px-6 py-3 bg-gradient-to-r from-cyan-400 to-blue-500 hover:from-cyan-500 hover:to-blue-600 text-white font-semibold rounded-lg transition-all flex items-center space-x-2">
+              <Target className="w-5 h-5" />
+              <span>New Deal</span>
+            </button>
+          </div>
 
-        {/* Search Form */}
-        <Card className="mb-8">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">Search Deals</h2>
-          <form onSubmit={handleSearch}>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
-              <Input
-                label="Destination"
-                name="destination"
-                value={searchCriteria.destination}
-                onChange={handleChange}
-                placeholder="e.g., Dubai, Goa"
-                required
-              />
-              <Input
-                label="Start Date"
-                type="date"
-                name="startDate"
-                value={searchCriteria.startDate}
-                onChange={handleChange}
-                required
-              />
-              <Input
-                label="End Date"
-                type="date"
-                name="endDate"
-                value={searchCriteria.endDate}
-                onChange={handleChange}
-                required
-              />
-              <Input
-                label="Budget (₹)"
-                type="number"
-                name="budget"
-                value={searchCriteria.budget}
-                onChange={handleChange}
-                placeholder="e.g., 50000"
-                required
-              />
-              <Input
-                label="Travelers"
-                type="number"
-                name="travelers"
-                value={searchCriteria.travelers}
-                onChange={handleChange}
-                min="1"
-                required
+          {/* Search and Filter */}
+          <div className="flex items-center space-x-4">
+            <div className="flex-1 relative">
+              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-slate-400" />
+              <input
+                type="text"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="Search deals by client, company, or destination..."
+                className="w-full pl-12 pr-4 py-3 bg-slate-700/50 border border-slate-600/50 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition-all"
               />
             </div>
-            <Button type="submit" disabled={loading} fullWidth>
-              {loading ? 'Searching...' : 'Compare Deals'}
-            </Button>
-          </form>
-        </Card>
-
-        {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6">
-            {error}
+            <select
+              value={filterStatus}
+              onChange={(e) => setFilterStatus(e.target.value)}
+              className="px-4 py-3 bg-slate-700/50 border border-slate-600/50 rounded-lg text-white focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition-all"
+            >
+              <option value="all">All Status</option>
+              <option value="confirmed">Confirmed</option>
+              <option value="negotiating">Negotiating</option>
+              <option value="pending">Pending</option>
+            </select>
+            <button className="px-4 py-3 bg-slate-700/50 hover:bg-slate-700 border border-slate-600 rounded-lg text-slate-300 transition-all flex items-center space-x-2">
+              <Filter className="w-5 h-5" />
+              <span>Filters</span>
+            </button>
           </div>
-        )}
+        </div>
+      </div>
 
-        {/* Results */}
-        {dealResults && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="space-y-6"
-          >
-            {/* Insights */}
-            {dealResults.insights && dealResults.insights.length > 0 && (
-              <Card>
-                <div className="flex items-center mb-4">
-                  <AlertCircle className="h-5 w-5 text-primary-600 mr-2" />
-                  <h3 className="text-lg font-semibold text-gray-900">Key Insights</h3>
-                </div>
-                <div className="space-y-2">
-                  {dealResults.insights.map((insight, index) => (
-                    <div
-                      key={index}
-                      className={`p-3 rounded-lg ${
-                        insight.severity === 'good'
-                          ? 'bg-green-50 border border-green-200'
-                          : insight.severity === 'warning'
-                          ? 'bg-yellow-50 border border-yellow-200'
-                          : 'bg-blue-50 border border-blue-200'
-                      }`}
-                    >
-                      <div className="flex items-start">
-                        <Badge variant={getSeverityColor(insight.severity)} className="mr-2">
-                          {insight.type}
-                        </Badge>
-                        <p className="text-sm text-gray-700">{insight.message}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </Card>
-            )}
-
-            {/* Best Deal */}
-            {dealResults.bestDeal && (
-              <Card className="border-2 border-green-500">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center">
-                    <Badge variant="success" className="mr-2">
-                      Best Deal
-                    </Badge>
-                    <h3 className="text-xl font-semibold text-gray-900">
-                      {dealResults.bestDeal.packageName}
-                    </h3>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-2xl font-bold text-green-600">
-                      ₹{dealResults.bestDeal.totalPrice.toLocaleString()}
-                    </div>
-                    <div className="text-sm text-gray-600">
-                      ₹{dealResults.bestDeal.pricePerPerson.toLocaleString()}/person
-                    </div>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
-                  <div>
-                    <p className="text-sm text-gray-600">Duration</p>
-                    <p className="font-semibold text-gray-900">
-                      {dealResults.bestDeal.duration} days
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-600">Accommodation</p>
-                    <p className="font-semibold text-gray-900 capitalize">
-                      {dealResults.bestDeal.accommodationType}
-                    </p>
-                  </div>
-                  <div className="flex items-center">
-                    <Shield className="h-4 w-4 text-blue-600 mr-1" />
-                    <div>
-                      <p className="text-sm text-gray-600">Safety</p>
-                      <p className="font-semibold text-gray-900">
-                        {dealResults.bestDeal.safetyScore}/10
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-center">
-                    <Star className="h-4 w-4 text-yellow-600 mr-1" />
-                    <div>
-                      <p className="text-sm text-gray-600">Rating</p>
-                      <p className="font-semibold text-gray-900">
-                        {dealResults.bestDeal.rating}/5
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="border-t pt-4">
-                  <h4 className="font-semibold text-gray-900 mb-2">Score Breakdown</h4>
-                  <div className="grid grid-cols-2 md:grid-cols-5 gap-3 text-sm">
-                    <div>
-                      <p className="text-gray-600">Price</p>
-                      <p className="font-semibold">{dealResults.bestDeal.scores.price.toFixed(0)}</p>
-                    </div>
-                    <div>
-                      <p className="text-gray-600">Safety</p>
-                      <p className="font-semibold">{dealResults.bestDeal.scores.safety.toFixed(0)}</p>
-                    </div>
-                    <div>
-                      <p className="text-gray-600">Rating</p>
-                      <p className="font-semibold">{dealResults.bestDeal.scores.rating.toFixed(0)}</p>
-                    </div>
-                    <div>
-                      <p className="text-gray-600">Value</p>
-                      <p className="font-semibold">{dealResults.bestDeal.scores.value.toFixed(0)}</p>
-                    </div>
-                    <div>
-                      <p className="text-gray-600">Overall</p>
-                      <p className="font-semibold text-green-600">
-                        {dealResults.bestDeal.scores.composite.toFixed(0)}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </Card>
-            )}
-
-            {/* Alternatives */}
-            {dealResults.alternatives && dealResults.alternatives.length > 0 && (
-              <div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-4">
-                  Alternative Options ({dealResults.alternatives.length})
-                </h3>
-                <div className="space-y-4">
-                  {dealResults.alternatives.map((deal, index) => (
-                    <Card key={index}>
-                      <div className="flex items-start justify-between mb-3">
-                        <div>
-                          <h4 className="text-lg font-semibold text-gray-900 mb-1">
-                            {deal.packageName}
-                          </h4>
-                          {deal.comparison && (
-                            <div className="flex items-center text-sm text-gray-600">
-                              {deal.comparison.priceDifference < 0 ? (
-                                <TrendingDown className="h-4 w-4 text-green-600 mr-1" />
-                              ) : (
-                                <TrendingUp className="h-4 w-4 text-red-600 mr-1" />
-                              )}
-                              <span>{deal.comparison.message}</span>
-                            </div>
-                          )}
-                        </div>
-                        <div className="text-right">
-                          <div className="text-xl font-bold text-gray-900">
-                            ₹{deal.totalPrice.toLocaleString()}
-                          </div>
-                          <div className="text-sm text-gray-600">
-                            {deal.comparison?.priceDifferencePercent}% vs best
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="grid grid-cols-4 gap-3 text-sm">
-                        <div className="flex items-center">
-                          <Shield className="h-4 w-4 text-blue-600 mr-1" />
-                          <span>{deal.safetyScore}/10</span>
-                        </div>
-                        <div className="flex items-center">
-                          <Star className="h-4 w-4 text-yellow-600 mr-1" />
-                          <span>{deal.rating}/5</span>
-                        </div>
-                        <div className="flex items-center">
-                          <DollarSign className="h-4 w-4 text-green-600 mr-1" />
-                          <span>Score: {deal.scores.composite.toFixed(0)}</span>
-                        </div>
-                        <div className="text-gray-600">{deal.accommodationType}</div>
-                      </div>
-                    </Card>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Summary */}
-            <Card>
+      {/* Main Content */}
+      <div className="max-w-7xl mx-auto px-6 py-8">
+        {/* Stats Overview */}
+        <div className="grid grid-cols-4 gap-4 mb-8">
+          {[
+            {
+              label: 'Total Pipeline',
+              value: `$${(totalValue / 1000).toFixed(0)}K`,
+              icon: DollarSign,
+              color: 'from-cyan-500 to-blue-500',
+            },
+            {
+              label: 'Total Savings',
+              value: `$${(totalSavings / 1000).toFixed(1)}K`,
+              icon: TrendingDown,
+              color: 'from-green-500 to-emerald-500',
+            },
+            {
+              label: 'Active Deals',
+              value: activeDeals,
+              icon: Clock,
+              color: 'from-amber-500 to-orange-500',
+            },
+            {
+              label: 'Confirmed',
+              value: confirmedDeals,
+              icon: CheckCircle,
+              color: 'from-purple-500 to-pink-500',
+            },
+          ].map((stat, index) => (
+            <motion.div
+              key={index}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: index * 0.1 }}
+              className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-6"
+            >
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900">Analysis Complete</h3>
-                  <p className="text-gray-600">
-                    Analyzed {dealResults.totalDealsAnalyzed} deals for your criteria
-                  </p>
+                  <p className="text-slate-400 text-sm mb-2">{stat.label}</p>
+                  <p className="text-3xl font-bold text-white">{stat.value}</p>
                 </div>
-                <Button variant="primary">Select & Continue</Button>
+                <div
+                  className={`w-12 h-12 bg-gradient-to-br ${stat.color} rounded-lg flex items-center justify-center`}
+                >
+                  <stat.icon className="w-6 h-6 text-white" />
+                </div>
               </div>
-            </Card>
-          </motion.div>
-        )}
+            </motion.div>
+          ))}
+        </div>
+
+        {/* Deal Cards */}
+        <div className="space-y-4">
+          {filteredDeals.map((deal, index) => {
+            const statusConfig = getStatusConfig(deal.status);
+            const StatusIcon = statusConfig.icon;
+
+            return (
+              <motion.div
+                key={deal.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.05 }}
+                className="bg-slate-800/50 border border-slate-700/50 rounded-xl overflow-hidden hover:border-cyan-500/50 transition-all group"
+              >
+                <div className="p-6">
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="flex-1">
+                      <div className="flex items-center space-x-3 mb-2">
+                        <h3 className="text-xl font-bold text-white">{deal.client}</h3>
+                        <span
+                          className={`px-3 py-1 rounded-full text-xs font-semibold ${statusConfig.bg} ${statusConfig.text} border ${statusConfig.border} flex items-center space-x-1`}
+                        >
+                          <StatusIcon className="w-3 h-3" />
+                          <span>{statusConfig.label}</span>
+                        </span>
+                        <span className={`text-xs font-semibold ${getPriorityColor(deal.priority)}`}>
+                          {deal.priority.toUpperCase()} PRIORITY
+                        </span>
+                      </div>
+                      <p className="text-slate-400 text-sm mb-1">{deal.clientCompany}</p>
+                      <div className="flex items-center space-x-4 text-sm text-slate-400">
+                        <span className="flex items-center">
+                          <Briefcase className="w-4 h-4 mr-1" />
+                          {deal.type}
+                        </span>
+                        <span className="flex items-center">
+                          <Calendar className="w-4 h-4 mr-1" />
+                          {deal.travelDates}
+                        </span>
+                        <span className="flex items-center">
+                          <Users className="w-4 h-4 mr-1" />
+                          {deal.travelers} travelers
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="text-right">
+                      <div className="text-2xl font-bold text-white mb-1">
+                        ${(deal.value / 1000).toFixed(1)}K
+                      </div>
+                      <div className="flex items-center text-green-400 text-sm font-semibold">
+                        <TrendingDown className="w-4 h-4 mr-1" />
+                        ${(deal.savings / 1000).toFixed(1)}K saved
+                      </div>
+                      <p className="text-slate-500 text-xs mt-2 flex items-center justify-end">
+                        <Clock className="w-3 h-3 mr-1" />
+                        {deal.lastActivity}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between pt-4 border-t border-slate-700/50">
+                    <div className="flex items-center space-x-2 text-slate-400">
+                      <Target className="w-5 h-5" />
+                      <span className="text-sm">{deal.destination}</span>
+                    </div>
+
+                    <div className="flex items-center space-x-2">
+                      <button className="px-4 py-2 bg-slate-700/50 hover:bg-slate-700 border border-slate-600 rounded-lg text-slate-300 hover:text-white text-sm font-medium transition-all">
+                        View Details
+                      </button>
+                      {deal.status !== 'confirmed' && (
+                        <button className="px-4 py-2 bg-gradient-to-r from-cyan-400 to-blue-500 hover:from-cyan-500 hover:to-blue-600 text-white text-sm font-semibold rounded-lg transition-all flex items-center space-x-1">
+                          <Zap className="w-4 h-4" />
+                          <span>Quick Action</span>
+                          <ArrowRight className="w-4 h-4" />
+                        </button>
+                      )}
+                      <button className="p-2 text-slate-400 hover:text-white transition-colors">
+                        <MoreVertical className="w-5 h-5" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            );
+          })}
+        </div>
       </div>
     </div>
   );

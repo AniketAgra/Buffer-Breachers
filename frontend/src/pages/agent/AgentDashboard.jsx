@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
   Users,
@@ -10,15 +10,93 @@ import {
   CheckCircle,
   Clock,
   Search,
+  LayoutDashboard,
+  Plane,
+  MessageSquare,
+  Wallet,
+  Shield,
+  Sparkles,
+  ArrowUp,
+  ArrowRight,
+  CloudRain,
+  Hotel,
+  MapPin,
 } from 'lucide-react';
 import { agentAPI } from '../../services/endpoints';
 import Card from '../../components/common/Card';
 import Button from '../../components/common/Button';
 
 const AgentDashboard = () => {
+  const navigate = useNavigate();
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [activeNav, setActiveNav] = useState('overview');
+
+  const upcomingDeadlines = [
+    {
+      id: 1,
+      clientName: 'Alice Smith',
+      initials: 'AS',
+      destination: 'Paris, France',
+      date: 'Oct 12, 2024',
+      status: 'Awaiting Visa',
+      statusColor: 'bg-yellow-500/20 text-yellow-400',
+      action: 'Remind Client',
+    },
+    {
+      id: 2,
+      clientName: 'Marcus Kane',
+      initials: 'MK',
+      destination: 'Tokyo, Japan',
+      date: 'Oct 15, 2024',
+      status: 'Confirmed',
+      statusColor: 'bg-green-500/20 text-green-400',
+      action: 'Send Itinerary',
+    },
+    {
+      id: 3,
+      clientName: 'Laura Jenkins',
+      initials: 'LJ',
+      destination: 'New York, USA',
+      date: 'Oct 18, 2024',
+      status: 'Payment Pending',
+      statusColor: 'bg-blue-500/20 text-blue-400',
+      action: 'Check Invoice',
+    },
+  ];
+
+  const aiSuggestions = [
+    {
+      icon: Sparkles,
+      iconColor: 'text-yellow-400',
+      title: 'Price drop detected',
+      description: "for Smith's Paris trip. Potential savings: $240.",
+      action: 'NOTIFY CLIENT?',
+    },
+    {
+      icon: CloudRain,
+      iconColor: 'text-red-400',
+      title: 'Severe weather warning',
+      description: 'for Tokyo. Flight impacts expected on Oct 15.',
+      action: 'UPDATE MARCUS?',
+    },
+    {
+      icon: Hotel,
+      iconColor: 'text-blue-400',
+      title: 'Hotel availability low',
+      description: 'for Jenkins in NYC. 2 rooms left at preferred rate.',
+      action: 'SECURE ROOM',
+    },
+  ];
+
+  const navigationItems = [
+    { id: 'overview', icon: LayoutDashboard, label: 'Overview' },
+    { id: 'trips', icon: Plane, label: 'Active Trips' },
+    { id: 'messages', icon: MessageSquare, label: 'Client Messages' },
+    { id: 'commission', icon: Wallet, label: 'Commission' },
+    { id: 'alerts', icon: Shield, label: 'Security Alerts' },
+  ];
 
   useEffect(() => {
     fetchDashboardData();
