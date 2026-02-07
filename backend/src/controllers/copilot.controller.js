@@ -3,6 +3,7 @@
  * 
  * This is the core AI controller that handles user queries and generates
  * intelligent travel recommendations using the decision engine.
+ * Enhanced with RAG, memory management, and real-time Socket.IO support
  */
 
 import { asyncHandler } from '../middlewares/error.middleware.js';
@@ -13,9 +14,11 @@ import { buildItinerary } from '../utils/itineraryBuilder.util.js';
 import { formatCopilotResponse, formatClarificationRequest } from '../utils/responseFormatter.util.js';
 import { Trip } from '../models/Trip.model.js';
 import { compareDeals, validateDealSelection } from '../services/deal.service.js';
+import { MemoryManager } from '../services/memory.service.js';
+import { ragService } from '../services/rag.service.js';
 
 /**
- * @desc    Process copilot query (Main AI endpoint)
+ * @desc    Process copilot query (Main AI endpoint with RAG & Memory)
  * @route   POST /api/copilot/query
  * @access  Private
  */
@@ -23,68 +26,111 @@ export const processQuery = asyncHandler(async (req, res) => {
   const { message, sessionId, context: additionalContext } = req.body;
   const user = req.user;
   
+  // Initialize memory manager
+  const memoryManager = new MemoryManager(user._id);
+  await memoryManager.initializeSession(sessionId);
+  
+  // Add user message to memory
+  memoryManager.addMessage('user', message);
+  
   // STEP 1: Parse intent and extract entities
   const context = buildContext(message, user);
   
   console.log('🤖 Copilot Query:', message);
   console.log('📊 Parsed Context:', JSON.stringify(context, null, 2));
   
+  // Update context in memory
+  memoryManager.updateContext(context.query);
+  
   // STEP 2: Check if clarification is needed
   const clarification = needsClarification(context);
   
   if (clarification.needsClarification) {
+    const clarificationMsg = formatClarificationRequest(clarification.missingFields);
+    memoryManager.addMessage('assistant', clarificationMsg);
+    
     return res.status(200).json({
       success: true,
       needsClarification: true,
-      response: formatClarificationRequest(clarification.missingFields),
+      response: clarificationMsg,
+      sessionId: memoryManager.sessionId,
     });
   }
   
-  // STEP 3: Generate recommendations based on intent
+  // STEP 3: Use RAG to enhance response with relevant context
+  let ragEnhancement = null;
+  try {
+    const history = memoryManager.getHistory();
+    ragEnhancement = await ragService.generateResponse(message, history, {
+      topK: 5,
+      filter: {
+        type: { $in: ['destination', 'policy', 'safety', 'tips'] },
+      },
+    });
+  } catch (error) {
+    console.warn('RAG enhancement failed:', error.message);
+  }
+  
+  // STEP 4: Generate recommendations based on intent
   const intent = context.query.intent;
   let response;
   
   switch (intent) {
     case 'TRIP_PLANNING':
-      response = await handleTripPlanning(context, user);
+      response = await handleTripPlanning(context, user, ragEnhancement);
       break;
       
     case 'HOTEL_SEARCH':
-      response = await handleHotelSearch(context, user);
+      response = await handleHotelSearch(context, user, ragEnhancement);
       break;
       
     case 'FLIGHT_SEARCH':
-      response = await handleFlightSearch(context, user);
+      response = await handleFlightSearch(context, user, ragEnhancement);
       break;
       
     case 'ACTIVITY_SEARCH':
-      response = await handleActivitySearch(context, user);
+      response = await handleActivitySearch(context, user, ragEnhancement);
       break;
       
     case 'SAFETY_INQUIRY':
-      response = await handleSafetyInquiry(context, user);
+      response = await handleSafetyInquiry(context, user, ragEnhancement);
       break;
       
     case 'RECOMMENDATION':
-      response = await handleRecommendation(context, user);
+      response = await handleRecommendation(context, user, ragEnhancement);
       break;
       
     default:
-      response = await handleGeneralQuery(context, user);
+      response = await handleGeneralQuery(context, user, ragEnhancement);
   }
+  
+  // Add assistant response to memory
+  const responseText = typeof response === 'string' ? response : response.message || 'Response generated';
+  memoryManager.addMessage('assistant', responseText, {
+    intent,
+    confidence: context.query.confidence,
+    ragSources: ragEnhancement?.sources?.map(s => s.id),
+  });
+  
+  // Persist to long-term memory (async)
+  memoryManager.persist(3).catch(err => 
+    console.error('Error persisting memory:', err)
+  );
   
   res.status(200).json({
     success: true,
     intent,
     confidence: context.query.confidence,
     response,
+    sessionId: memoryManager.sessionId,
+    ragSources: ragEnhancement?.sources,
   });
 });
 
 /**
  * Handle trip planning intent
  */
-const handleTripPlanning = async (context, user) => {
+const handleTripPlanning = async (context, user, ragEnhancement) => {
   // Generate recommendations
   const recommendations = generateRecommendations(context);
   
@@ -207,7 +253,7 @@ const generateAgentRecommendation = (dealComparison) => {
 /**
  * Handle hotel search intent
  */
-const handleHotelSearch = async (context, user) => {
+const handleHotelSearch = async (context, user, ragEnhancement) => {
   const recommendations = generateRecommendations(context);
   
   return {
@@ -223,7 +269,7 @@ const handleHotelSearch = async (context, user) => {
 /**
  * Handle flight search intent
  */
-const handleFlightSearch = async (context, user) => {
+const handleFlightSearch = async (context, user, ragEnhancement) => {
   const recommendations = generateRecommendations(context);
   
   return {
@@ -239,7 +285,7 @@ const handleFlightSearch = async (context, user) => {
 /**
  * Handle activity search intent
  */
-const handleActivitySearch = async (context, user) => {
+const handleActivitySearch = async (context, user, ragEnhancement) => {
   const recommendations = generateRecommendations(context);
   
   return {
@@ -255,7 +301,7 @@ const handleActivitySearch = async (context, user) => {
 /**
  * Handle safety inquiry intent
  */
-const handleSafetyInquiry = async (context, user) => {
+const handleSafetyInquiry = async (context, user, ragEnhancement) => {
   const safety = generateSafetyReport(context.destination, context);
   
   return {
@@ -271,7 +317,7 @@ const handleSafetyInquiry = async (context, user) => {
 /**
  * Handle general recommendation intent
  */
-const handleRecommendation = async (context, user) => {
+const handleRecommendation = async (context, user, ragEnhancement) => {
   const recommendations = generateRecommendations(context);
   const safety = generateSafetyReport(context.destination, context);
   
@@ -285,7 +331,7 @@ const handleRecommendation = async (context, user) => {
 /**
  * Handle general queries
  */
-const handleGeneralQuery = async (context, user) => {
+const handleGeneralQuery = async (context, user, ragEnhancement) => {
   return {
     conversationalResponse: `I can help you plan your trip! Please provide more details about your destination, budget, and duration.`,
     suggestions: [
