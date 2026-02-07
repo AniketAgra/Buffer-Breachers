@@ -9,6 +9,16 @@ export const config = {
   jwtSecret: process.env.JWT_SECRET || 'your_super_secret_jwt_key',
   jwtExpire: process.env.JWT_EXPIRE || '7d',
   corsOrigin: process.env.CORS_ORIGIN || 'http://localhost:5173',
+  
+  // AI & RAG Configuration
+  openaiApiKey: process.env.OPENAI_API_KEY || '',
+  pineconeApiKey: process.env.PINECONE_API_KEY || '',
+  pineconeEnvironment: process.env.PINECONE_ENVIRONMENT || 'gcp-starter',
+  pineconeIndexName: process.env.PINECONE_INDEX_NAME || 'travel-copilot',
+  
+  // Memory Configuration
+  shortTermMemoryLimit: parseInt(process.env.SHORT_TERM_MEMORY_LIMIT || '10'),
+  longTermMemoryThreshold: parseInt(process.env.LONG_TERM_MEMORY_THRESHOLD || '5'),
 };
 
 // Validate required environment variables
