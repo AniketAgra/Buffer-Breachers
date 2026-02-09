@@ -29,9 +29,10 @@ import {
 } from 'lucide-react';
 import { copilotAPI } from '../../services/endpoints';
 import { useAuth } from '../../context/AuthContext';
+import socketService from '../../services/socket';
 
 const Demo = () => {
-  const { user } = useAuth();
+  const { user, token } = useAuth();
   const [messages, setMessages] = useState([
     {
       role: 'assistant',
@@ -70,6 +71,9 @@ const Demo = () => {
   ]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
+  const [isTyping, setIsTyping] = useState(false);
+  const [sessionId, setSessionId] = useState(null);
+  const [socketConnected, setSocketConnected] = useState(false);
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
 
@@ -81,10 +85,84 @@ const Demo = () => {
     scrollToBottom();
   }, [messages]);
 
+  // Initialize Socket.IO connection
+  useEffect(() => {
+    if (!token) return;
+
+    // Connect to socket
+    socketService.connect(token);
+
+    // Initialize session
+    socketService.initSession()
+      .then((response) => {
+        setSessionId(response.sessionId);
+        setSocketConnected(true);
+        console.log('Session initialized:', response.sessionId);
+      })
+      .catch((error) => {
+        console.error('Failed to initialize session:', error);
+      });
+
+    // Set up event listeners
+    socketService.on('copilot:response', (data) => {
+      const assistantMessage = {
+        role: 'assistant',
+        content: data.response,
+        sources: data.sources,
+        timestamp: new Date(),
+      };
+      setMessages((prev) => [...prev, assistantMessage]);
+      setLoading(false);
+    });
+
+    socketService.on('copilot:typing', (data) => {
+      setIsTyping(data.isTyping);
+    });
+
+    socketService.on('copilot:error', (data) => {
+      const errorMessage = {
+        role: 'assistant',
+        content: data.error || 'Sorry, I encountered an error. Please try again.',
+        error: true,
+        timestamp: new Date(),
+      };
+      setMessages((prev) => [...prev, errorMessage]);
+      setLoading(false);
+      setIsTyping(false);
+    });
+
+    socketService.on('copilot:stream:chunk', (data) => {
+      // Handle streaming chunks if needed
+      console.log('Streaming chunk:', data.chunk);
+    });
+
+    socketService.on('copilot:stream:complete', (data) => {
+      const assistantMessage = {
+        role: 'assistant',
+        content: data.response,
+        sources: data.sources,
+        timestamp: new Date(),
+      };
+      setMessages((prev) => [...prev, assistantMessage]);
+      setLoading(false);
+      setIsTyping(false);
+    });
+
+    // Cleanup on unmount
+    return () => {
+      socketService.removeAllListeners('copilot:response');
+      socketService.removeAllListeners('copilot:typing');
+      socketService.removeAllListeners('copilot:error');
+      socketService.removeAllListeners('copilot:stream:chunk');
+      socketService.removeAllListeners('copilot:stream:complete');
+      socketService.disconnect();
+    };
+  }, [token]);
+
   const handleSubmit = async (e, customQuery = null) => {
     e?.preventDefault();
     const query = customQuery || input.trim();
-    if (!query) return;
+    if (!query || !sessionId) return;
 
     const userMessage = {
       role: 'user',
@@ -96,17 +174,26 @@ const Demo = () => {
     setLoading(true);
 
     try {
-      const response = await copilotAPI.query({ message: query });
-      const data = response.data;
+      // Send query via Socket.IO
+      if (socketConnected) {
+        socketService.sendQuery(query, sessionId);
+      } else {
+        // Fallback to HTTP if socket not connected
+        const response = await copilotAPI.query({ message: query, sessionId });
+          // Fallback to HTTP if socket not connected
+        const response = await copilotAPI.query({ message: query, sessionId });
+        const data = response.data;
 
-      const assistantMessage = {
-        role: 'assistant',
-        content: data.response.conversationalResponse || data.response.message || 'I processed your request.',
-        data: data.response.data,
-        intent: data.intent,
-        timestamp: new Date(),
-      };
-      setMessages((prev) => [...prev, assistantMessage]);
+        const assistantMessage = {
+          role: 'assistant',
+          content: data.response.conversationalResponse || data.response.message || 'I processed your request.',
+          data: data.response.data,
+          intent: data.intent,
+          timestamp: new Date(),
+        };
+        setMessages((prev) => [...prev, assistantMessage]);
+        setLoading(false);
+      }
     } catch (error) {
       const errorMessage = {
         role: 'assistant',
@@ -117,8 +204,8 @@ const Demo = () => {
         timestamp: new Date(),
       };
       setMessages((prev) => [...prev, errorMessage]);
-    } finally {
       setLoading(false);
+    } finally {
       inputRef.current?.focus();
     }
   };
