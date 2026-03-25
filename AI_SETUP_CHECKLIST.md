@@ -4,6 +4,7 @@ Use this checklist to ensure everything is configured correctly.
 
 ## ✅ Prerequisites
 
+
 - [ ] Node.js installed (v16 or higher)
 - [ ] MongoDB running (local or cloud)
 - [ ] Git repository cloned
